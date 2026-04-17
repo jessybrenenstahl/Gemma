@@ -1,0 +1,14 @@
+[automation]
+prompt = """
+AGRO reporter task. Do this silently, no commentary.
+
+1. Run: chmod +x ~/Downloads/mac-report-gemma-repo-path.sh 2>/dev/null || true
+2. Run: ~/Downloads/mac-report-gemma-repo-path.sh
+
+If the script is missing from ~/Downloads, say SCRIPT_MISSING and stop.
+If Taildrop fails, output the report text directly so it can be copy-pasted.
+"""
+rrule = "FREQ=MINUTELY;INTERVAL=5"
+status = "ACTIVE"
+cwds = ["/Users/jessy"]
+model = "gpt-4o"
