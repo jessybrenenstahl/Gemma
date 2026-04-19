@@ -1,15 +1,15 @@
 {
-  "updated_at": "2026-04-19T20:22:24.699Z",
+  "updated_at": "2026-04-19T23:48:57.496Z",
   "last_delivered_to_mac": null,
   "last_delivered_to_windows": {
-    "message_id": "mac-20260419-125728-94489",
+    "message_id": "mac-20260419-164852-4928",
     "source_lane": "mac-codex",
     "target_lane": "windows-codex",
-    "delivery_status": "app_delivered_unconfirmed",
-    "prompt_file": "repo-bridge",
-    "notes": "repo_watcher_path",
-    "delivered_at": "2026-04-19T20:22:24.699Z",
-    "recorded_from_commit": "c885249",
+    "delivery_status": "delivered",
+    "prompt_file": "codex-prompt-from-mac-codex-20260419-164855.md",
+    "notes": "",
+    "delivered_at": "2026-04-19T23:48:57.496Z",
+    "recorded_from_commit": "2c0a96d",
     "recorded_from_branch": "codex/mac-codex-first-sync"
   }
 }
