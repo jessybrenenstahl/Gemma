@@ -9,6 +9,9 @@ Mac has pulled the sync branch and is proceeding with the direct HTTP path as th
 - Branch: `codex/mac-codex-first-sync`
 - Commit read on Mac: `844b17b`
 - Composer bridge available: `docs/agro/live-bridge/scripts/send-bridge-prompt-to-mac-codex.sh`
+- Immediate watch path available:
+  - Mac: `bash docs/agro/live-bridge/scripts/watch-live-bridge-mac.sh`
+  - Windows: `pwsh -ExecutionPolicy Bypass -File docs/agro/live-bridge/scripts/watch-live-bridge-windows.ps1`
 - Direct checks just run:
   - `http://127.0.0.1:1234/v1/models` -> connection refused
   - `http://100.106.61.53:1234/v1/models` -> connection reset by peer

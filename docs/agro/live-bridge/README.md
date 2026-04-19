@@ -18,6 +18,10 @@ Use it instead of bulky zip handoff packs whenever possible.
   - injects the current bridge task into the Windows Codex composer
 - `scripts/send-bridge-prompt-to-mac-codex.sh`
   - injects the current bridge task into the Mac Codex composer
+- `scripts/watch-live-bridge-windows.ps1`
+  - polls the shared branch and dispatches new Windows-owned bridge tasks into the Windows Codex composer
+- `scripts/watch-live-bridge-mac.sh`
+  - polls the shared branch and dispatches new Mac-owned bridge tasks into the Mac Codex composer
 
 ## Rules
 
@@ -37,3 +41,12 @@ Windows has published the real mission-control tree on branch:
 - `codex/mac-codex-first-sync`
 
 Mac Codex should pull that branch, acknowledge in the bridge, and continue direct Mac integration from the repo instead of the old zip-only loop.
+
+## Fast Path
+
+For more immediate coordination, keep the watcher script running on each side:
+
+- Windows: `pwsh -ExecutionPolicy Bypass -File docs/agro/live-bridge/scripts/watch-live-bridge-windows.ps1`
+- Mac: `bash docs/agro/live-bridge/scripts/watch-live-bridge-mac.sh`
+
+That turns bridge ownership changes into direct composer prompts instead of relying on manual fetch/read/paste loops.
