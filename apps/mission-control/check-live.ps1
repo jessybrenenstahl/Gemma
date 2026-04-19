@@ -230,14 +230,15 @@ function Invoke-JsonCheck {
     [string]$Label,
     [string]$Uri,
     [string]$Method = "GET",
-    [string]$Body = ""
+    [string]$Body = "",
+    [int]$TimeoutSec = 20
   )
 
   try {
     if ($Method -eq "POST") {
-      $response = Invoke-WebRequest -Uri $Uri -Method Post -ContentType "application/json" -Body $Body -SkipHttpErrorCheck -TimeoutSec 45
+      $response = Invoke-WebRequest -Uri $Uri -Method Post -ContentType "application/json" -Body $Body -SkipHttpErrorCheck -TimeoutSec $TimeoutSec
     } else {
-      $response = Invoke-WebRequest -Uri $Uri -SkipHttpErrorCheck -TimeoutSec 20
+      $response = Invoke-WebRequest -Uri $Uri -SkipHttpErrorCheck -TimeoutSec $TimeoutSec
     }
 
     [pscustomobject]@{
@@ -285,7 +286,7 @@ $pcChatBody = @{
   max_tokens = 8
   stream = $false
 } | ConvertTo-Json -Depth 6
-$checks += Invoke-JsonCheck -Label "pc-chat" -Uri "http://127.0.0.1:1234/v1/chat/completions" -Method "POST" -Body $pcChatBody
+$checks += Invoke-JsonCheck -Label "pc-chat" -Uri "http://127.0.0.1:1234/v1/chat/completions" -Method "POST" -Body $pcChatBody -TimeoutSec 120
 foreach ($candidate in $macEndpointCandidates) {
   $labelBase = $candidate.Replace("https://", "").Replace("http://", "").Replace(":", "_").Replace("/", "_")
   $checks += Invoke-JsonCheck -Label ("mac-models-" + $labelBase) -Uri ($candidate.TrimEnd("/") + "/v1/models")
@@ -294,7 +295,7 @@ foreach ($candidate in $macEndpointCandidates) {
 $pcBody = @{
   prompt = "Reply with exactly READY if the local reviewer route is functioning."
 } | ConvertTo-Json -Depth 4
-$checks += Invoke-JsonCheck -Label "send-pc-route" -Uri "http://127.0.0.1:3040/api/routes/send-pc" -Method "POST" -Body $pcBody
+$checks += Invoke-JsonCheck -Label "send-pc-route" -Uri "http://127.0.0.1:3040/api/routes/send-pc" -Method "POST" -Body $pcBody -TimeoutSec 120
 
 $sendMacBody = @{
   prompt = "State whether the Mac execution lane is healthy. Keep the reply short and concrete."

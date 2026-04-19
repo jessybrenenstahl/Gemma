@@ -193,6 +193,7 @@ Get-CimInstance Win32_Process |
   }
 
 $env:AGRO_PC_MODEL = $pcModel
+$env:AGRO_PC_TIMEOUT_MS = "90000"
 $env:AGRO_PC_REPO_PATH = "C:\Users\jessy\Documents\GitHub\Gemma"
 $env:AGRO_MAC_ENDPOINT = $macEndpoint
 $env:AGRO_MAC_MODEL = $macModel

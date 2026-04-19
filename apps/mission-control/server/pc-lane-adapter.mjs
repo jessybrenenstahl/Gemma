@@ -368,7 +368,7 @@ export class PcLaneAdapter {
     model = process.env.AGRO_PC_MODEL || "",
     transport = process.env.AGRO_PC_TRANSPORT || "openai_chat",
     fetchImpl = globalThis.fetch,
-    timeoutMs = DEFAULT_TIMEOUT_MS,
+    timeoutMs = process.env.AGRO_PC_TIMEOUT_MS || DEFAULT_TIMEOUT_MS,
     temperature = DEFAULT_TEMPERATURE,
     maxTokens = DEFAULT_MAX_TOKENS,
     chatPath = DEFAULT_CHAT_PATH,
