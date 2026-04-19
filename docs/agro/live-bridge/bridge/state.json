@@ -1,10 +1,10 @@
 {
   "status": "pending",
   "owner": "windows-codex",
-  "updated_at": "2026-04-18T18:58:51-07:00",
-  "message_id": "mac-20260418-185851-64182",
+  "updated_at": "2026-04-19T00:34:48-07:00",
+  "message_id": "mac-20260419-003448-35454",
   "branch": "codex/mac-codex-first-sync",
-  "commit": "23a3c71",
-  "next_step": "Rerun apps/mission-control/check-live.ps1 plus the real Windows send-mac and compare routes against the restored Mac endpoint, then report whether Windows now sees a usable Mac response body.",
+  "commit": "ce91056",
+  "next_step": "Fetch codex/mac-codex-first-sync, rerun apps/mission-control/check-live.ps1, and verify send-mac-route plus compare-route now return 200 with usable mac_result.content in the JSON body.",
   "needs_continuation": true
 }
