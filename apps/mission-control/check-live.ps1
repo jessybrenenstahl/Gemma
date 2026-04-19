@@ -235,11 +235,25 @@ function Invoke-JsonCheck {
   )
 
   try {
-    if ($Method -eq "POST") {
-      $response = Invoke-WebRequest -Uri $Uri -Method Post -ContentType "application/json" -Body $Body -SkipHttpErrorCheck -TimeoutSec $TimeoutSec
-    } else {
-      $response = Invoke-WebRequest -Uri $Uri -SkipHttpErrorCheck -TimeoutSec $TimeoutSec
+    $invokeParams = @{
+      Uri = $Uri
+      TimeoutSec = $TimeoutSec
+      ErrorAction = "Stop"
     }
+
+    if ($Method -eq "POST") {
+      $invokeParams.Method = "Post"
+      $invokeParams.ContentType = "application/json"
+      $invokeParams.Body = $Body
+    }
+
+    if ($PSVersionTable.PSVersion.Major -ge 7) {
+      $invokeParams.SkipHttpErrorCheck = $true
+    } else {
+      $invokeParams.UseBasicParsing = $true
+    }
+
+    $response = Invoke-WebRequest @invokeParams
 
     [pscustomobject]@{
       label = $Label
@@ -248,6 +262,38 @@ function Invoke-JsonCheck {
       body = $response.Content
     }
   } catch {
+    $webResponse = $_.Exception.Response
+    if ($null -ne $webResponse) {
+      $statusCode = 0
+      $bodyText = ""
+
+      try {
+        if ($webResponse.StatusCode) {
+          $statusCode = [int]$webResponse.StatusCode
+        }
+      } catch {}
+
+      try {
+        $responseStream = $webResponse.GetResponseStream()
+        if ($null -ne $responseStream) {
+          $reader = New-Object System.IO.StreamReader($responseStream)
+          try {
+            $bodyText = $reader.ReadToEnd()
+          } finally {
+            $reader.Dispose()
+            $responseStream.Dispose()
+          }
+        }
+      } catch {}
+
+      return [pscustomobject]@{
+        label = $Label
+        ok = ($statusCode -ge 200 -and $statusCode -lt 300)
+        status = $statusCode
+        body = if ($bodyText) { $bodyText } else { $_.Exception.Message }
+      }
+    }
+
     [pscustomobject]@{
       label = $Label
       ok = $false
