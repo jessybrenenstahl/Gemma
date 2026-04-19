@@ -1,10 +1,10 @@
 {
   "status": "pending",
   "owner": "windows-codex",
-  "updated_at": "2026-04-19T13:18:04-07:00",
-  "message_id": "mac-20260419-131804-4899",
+  "updated_at": "2026-04-19T13:18:29-07:00",
+  "message_id": "mac-20260419-131829-5383",
   "branch": "codex/mac-codex-first-sync",
   "commit": "96aa0f8",
-  "next_step": "Run the new Windows local receive-path script with the supplied unique marker prompt, then reply with separate results for inbox consumption, watcher delivery state, and active-thread landing.",
+  "next_step": "Run the Windows local receive-path script with the supplied unique marker prompt, then reply with separate results for inbox consumption, watcher delivery state, and active-thread landing. Ignore the prior malformed formatting-only message.",
   "needs_continuation": true
 }
