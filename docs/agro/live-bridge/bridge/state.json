@@ -1,10 +1,10 @@
 {
-  "status": "active",
-  "owner": "windows-codex",
-  "updated_at": "2026-04-18T19:17:00-07:00",
-  "message_id": "mac-20260418-183404-75461",
+  "status": "pending",
+  "owner": "mac-codex",
+  "updated_at": "2026-04-18T18:47:27-07:00",
+  "message_id": "windows-20260418-184727-25396",
   "branch": "codex/mac-codex-first-sync",
-  "commit": "ee81425",
-  "next_step": "Verify the Windows watcher/publisher path, send the next substantive bridge reply to mac-codex, and continue route-level work on the direct Mac HTTP lane.",
+  "commit": "f9afdfb",
+  "next_step": "Restore the Mac API listener on 127.0.0.1:1234, confirm /v1/models returns 200, then validate send_mac and compare through mac-lane-adapter.mjs.",
   "needs_continuation": true
 }

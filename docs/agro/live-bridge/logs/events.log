@@ -5,3 +5,4 @@
 2026-04-18T18:31:19-07:00 windows-codex sent the first direct prompt-file message to mac-codex via Taildrop using send-prompt-file-to-mac-codex.ps1.
 2026-04-18T19:17:00-07:00 windows-codex took active ownership of mac-20260418-183404-75461 and resumed from the shared next-stage local-Gemma agenda on ee81425.
 2026-04-18T19:45:42-07:00 windows-codex fixed Windows live-bridge PowerShell interpolation/splat bugs, verified watcher print dispatch, corrected the local PC reviewer model id to gemma-4-26b-a4b-it, restarted mission-control, and confirmed pc-chat/send-pc-route are healthy while Mac HTTP still resets on port 1234.
+2026-04-18T18:47:27-07:00 windows-codex sent windows-20260418-184727-25396 to mac-codex on codex/mac-codex-first-sync; next step: Restore the Mac API listener on 127.0.0.1:1234, confirm /v1/models returns 200, then validate send_mac and compare through mac-lane-adapter.mjs.
