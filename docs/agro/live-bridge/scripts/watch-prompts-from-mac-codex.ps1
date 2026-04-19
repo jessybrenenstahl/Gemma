@@ -29,6 +29,8 @@ Write-Host "Watching for Mac Codex prompt files in $InboxDir"
 
 $wShell = New-Object -ComObject WScript.Shell
 $recordScript = Join-Path $RepoRoot "docs\agro\live-bridge\scripts\record-direct-link-delivery.mjs"
+$receiptQueryScript = Join-Path $RepoRoot "docs\agro\live-bridge\scripts\query-direct-link-receipt.mjs"
+$remoteRef = "origin/codex/mac-codex-first-sync"
 
 function Get-MessageId {
   param([string]$Payload)
@@ -67,13 +69,53 @@ function Record-Delivery {
   }
 }
 
+function Test-ReceiptAlreadyRecorded {
+  param([string]$MessageId)
+
+  if (-not $MessageId) {
+    return $false
+  }
+
+  git -C $RepoRoot fetch origin codex/mac-codex-first-sync *> $null
+  & node $receiptQueryScript `
+    --repo-root $RepoRoot `
+    --git-ref $remoteRef `
+    --target-lane "windows-codex" `
+    --message-id $MessageId `
+    --require-non-retryable *> $null
+
+  return $LASTEXITCODE -eq 0
+}
+
+function Skip-StaleFiles {
+  param(
+    [System.IO.FileInfo]$SelectedFile,
+    [string]$SelectedMessageId
+  )
+
+  $staleFiles = @(
+    Get-ChildItem -LiteralPath $DeferredDir -File -Filter "codex-prompt-from-*.md" -ErrorAction SilentlyContinue
+    Get-ChildItem -LiteralPath $InboxDir -File -Filter "codex-prompt-from-*.md" -ErrorAction SilentlyContinue
+  ) |
+    Where-Object { $_.FullName -ne $SelectedFile.FullName } |
+    Sort-Object LastWriteTime
+
+  foreach ($staleFile in $staleFiles) {
+    $stalePayload = Get-Content -LiteralPath $staleFile.FullName -Raw
+    $staleMessageId = Get-MessageId -Payload $stalePayload
+    Move-Item -LiteralPath $staleFile.FullName -Destination (Join-Path $ProcessedDir $staleFile.Name) -Force
+    Record-Delivery -MessageId $staleMessageId -DeliveryStatus "stale_skipped" -PromptFile $staleFile.Name -Notes "superseded_by:$SelectedMessageId"
+    Write-Host "Skipped stale prompt $($staleFile.Name)."
+  }
+}
+
 try {
   while ($true) {
     $nextFile = @(
       Get-ChildItem -LiteralPath $DeferredDir -File -Filter "codex-prompt-from-*.md" -ErrorAction SilentlyContinue
       Get-ChildItem -LiteralPath $InboxDir -File -Filter "codex-prompt-from-*.md" -ErrorAction SilentlyContinue
     ) |
-      Sort-Object LastWriteTime |
+      Sort-Object LastWriteTime -Descending |
       Select-Object -First 1
 
     if (-not $nextFile) {
@@ -84,6 +126,18 @@ try {
     $payload = Get-Content -LiteralPath $nextFile.FullName -Raw
     $messageId = Get-MessageId -Payload $payload
     $deliveryStatus = ""
+    Skip-StaleFiles -SelectedFile $nextFile -SelectedMessageId $messageId
+
+    if (Test-ReceiptAlreadyRecorded -MessageId $messageId) {
+      Move-Item -LiteralPath $nextFile.FullName -Destination (Join-Path $ProcessedDir $nextFile.Name) -Force
+      Record-Delivery -MessageId $messageId -DeliveryStatus "duplicate_skipped" -PromptFile $nextFile.Name -Notes "already_recorded"
+      Write-Host "Skipped duplicate prompt $($nextFile.Name)."
+      if ($Once) {
+        break
+      }
+      continue
+    }
+
     if (-not [string]::IsNullOrWhiteSpace($payload)) {
       Set-Clipboard -Value $payload
       if (-not $NoSend) {

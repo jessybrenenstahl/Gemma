@@ -130,6 +130,7 @@ Behavior:
 
 - fetches the shared bridge branch
 - checks whether `state.json` ownership flipped to `windows-codex`
+- skips replay when the current `message_id` already has a non-retry receipt in `direct-link-state.json`
 - injects the latest remote bridge prompt into the Windows Codex composer
 - this covers the repo-native path
 
@@ -217,6 +218,7 @@ Behavior:
 
 - fetches the shared bridge branch
 - checks whether `state.json` ownership flipped to `mac-codex`
+- skips replay when the current `message_id` already has a non-retry receipt in `direct-link-state.json`
 - injects the latest remote bridge prompt into the Mac Codex composer
 - this covers the repo-native path
 
@@ -248,6 +250,7 @@ Behavior:
 - pastes the prompt
 - sends `Return`, `Return`
 - records a delivery receipt into `docs/agro/live-bridge/bridge/direct-link-state.json`
+- prefers the freshest pending prompt file and marks older backlog files as `stale_skipped`
 
 ### Send a direct prompt to Windows Codex
 

@@ -14,6 +14,7 @@ CLIPBOARD_ONLY=0
 CACHE_FILE="${TMPDIR:-/tmp}/agro-live-bridge-${OWNER}.last"
 STATE_REL="docs/agro/live-bridge/bridge/state.json"
 SENDER_SCRIPT="docs/agro/live-bridge/scripts/send-bridge-prompt-to-mac-codex.sh"
+RECEIPT_QUERY_SCRIPT="docs/agro/live-bridge/scripts/query-direct-link-receipt.mjs"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -105,9 +106,31 @@ parts = [
 print("|".join(parts))'
 }
 
+function message_id_value() {
+  read_remote_state | python3 -c 'import json,sys
+data = json.load(sys.stdin)
+print(str(data.get("message_id", "")))'
+}
+
+function receipt_already_recorded() {
+  local message_id="$1"
+
+  if [[ -z "${message_id}" ]]; then
+    return 1
+  fi
+
+  node "${REPO_ROOT}/${RECEIPT_QUERY_SCRIPT}" \
+    --repo-root "${REPO_ROOT}" \
+    --git-ref "${REMOTE_REF}" \
+    --target-lane "${OWNER}" \
+    --message-id "${message_id}" \
+    --require-non-retryable >/dev/null 2>&1
+}
+
 function should_dispatch() {
   local owner_value="$1"
   local token_value="$2"
+  local message_id="$3"
   local cached_value=""
 
   if [[ "${owner_value}" != "${OWNER}" ]]; then
@@ -122,7 +145,15 @@ function should_dispatch() {
     cached_value="$(cat "${CACHE_FILE}")"
   fi
 
-  [[ "${token_value}" != "${cached_value}" ]]
+  if [[ "${token_value}" == "${cached_value}" ]]; then
+    return 1
+  fi
+
+  if receipt_already_recorded "${message_id}"; then
+    return 1
+  fi
+
+  return 0
 }
 
 function dispatch_prompt() {
@@ -148,8 +179,9 @@ while true; do
 
   owner_value="$(state_value owner)"
   token="$(token_value)"
+  message_id="$(message_id_value)"
 
-  if should_dispatch "${owner_value}" "${token}"; then
+  if should_dispatch "${owner_value}" "${token}" "${message_id}"; then
     mkdir -p "$(dirname "${CACHE_FILE}")"
     printf "%s" "${token}" > "${CACHE_FILE}"
     dispatch_prompt

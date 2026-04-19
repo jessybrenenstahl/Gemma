@@ -145,6 +145,37 @@ function buildStateKey(targetLane) {
   return targetLane === "mac-codex" ? "last_delivered_to_mac" : "last_delivered_to_windows";
 }
 
+function buildReceiptKey(targetLane) {
+  return targetLane === "mac-codex" ? "receipts_to_mac" : "receipts_to_windows";
+}
+
+function normalizeState(rawState) {
+  const state = rawState && typeof rawState === "object" ? { ...rawState } : {};
+  state.updated_at = typeof state.updated_at === "string" ? state.updated_at : "";
+  state.last_delivered_to_mac = state.last_delivered_to_mac || null;
+  state.last_delivered_to_windows = state.last_delivered_to_windows || null;
+  state.receipts_to_mac =
+    state.receipts_to_mac && typeof state.receipts_to_mac === "object" ? { ...state.receipts_to_mac } : {};
+  state.receipts_to_windows =
+    state.receipts_to_windows && typeof state.receipts_to_windows === "object" ? { ...state.receipts_to_windows } : {};
+  return state;
+}
+
+function pruneReceiptMap(receiptMap, maxEntries = 100) {
+  const entries = Object.entries(receiptMap || {});
+  if (entries.length <= maxEntries) {
+    return Object.fromEntries(entries);
+  }
+
+  entries.sort((left, right) => {
+    const leftTimestamp = String(left[1]?.delivered_at || "");
+    const rightTimestamp = String(right[1]?.delivered_at || "");
+    return rightTimestamp.localeCompare(leftTimestamp);
+  });
+
+  return Object.fromEntries(entries.slice(0, maxEntries));
+}
+
 function readJson(filePath, fallbackValue) {
   if (!existsSync(filePath)) {
     return fallbackValue;
@@ -156,13 +187,16 @@ function readJson(filePath, fallbackValue) {
 function writeBridgeArtifacts(worktreePath, options) {
   const statePath = path.join(worktreePath, "docs/agro/live-bridge/bridge/direct-link-state.json");
   const logPath = path.join(worktreePath, "docs/agro/live-bridge/logs/prompt-delivery.log");
-  const currentState = readJson(statePath, {
+  const currentState = normalizeState(readJson(statePath, {
     updated_at: "",
     last_delivered_to_mac: null,
     last_delivered_to_windows: null,
-  });
+    receipts_to_mac: {},
+    receipts_to_windows: {},
+  }));
 
   const stateKey = buildStateKey(options.targetLane);
+  const receiptKey = buildReceiptKey(options.targetLane);
   const record = {
     message_id: options.messageId,
     source_lane: options.sourceLane,
@@ -175,12 +209,13 @@ function writeBridgeArtifacts(worktreePath, options) {
     recorded_from_branch: options.branchName,
   };
 
-  const previous = currentState[stateKey];
+  const previous = currentState[receiptKey]?.[options.messageId] || currentState[stateKey];
   const unchanged =
     previous &&
     previous.message_id === record.message_id &&
     previous.delivery_status === record.delivery_status &&
-    previous.prompt_file === record.prompt_file;
+    previous.prompt_file === record.prompt_file &&
+    previous.notes === record.notes;
 
   if (unchanged) {
     return false;
@@ -188,6 +223,8 @@ function writeBridgeArtifacts(worktreePath, options) {
 
   currentState.updated_at = options.timestamp;
   currentState[stateKey] = record;
+  currentState[receiptKey][options.messageId] = record;
+  currentState[receiptKey] = pruneReceiptMap(currentState[receiptKey]);
   writeFileSync(statePath, `${JSON.stringify(currentState, null, 2)}\n`);
 
   const noteSuffix = record.notes ? `; notes: ${record.notes}` : "";

@@ -21,6 +21,7 @@ if (-not $CacheFile) {
 $remoteRef = "$RemoteName/$BranchName"
 $stateRel = "docs/agro/live-bridge/bridge/state.json"
 $senderScript = Join-Path $RepoRoot "docs\agro\live-bridge\scripts\send-bridge-prompt-to-windows-codex.ps1"
+$receiptQueryScript = Join-Path $RepoRoot "docs\agro\live-bridge\scripts\query-direct-link-receipt.mjs"
 
 function Invoke-FetchRemote {
   git -C $RepoRoot fetch $RemoteName $BranchName | Out-Null
@@ -46,10 +47,28 @@ function Get-DispatchToken {
   ) -join "|"
 }
 
+function Test-ReceiptAlreadyRecorded {
+  param([string]$MessageId)
+
+  if ([string]::IsNullOrWhiteSpace($MessageId)) {
+    return $false
+  }
+
+  & node $receiptQueryScript `
+    --repo-root $RepoRoot `
+    --git-ref $remoteRef `
+    --target-lane $Owner `
+    --message-id $MessageId `
+    --require-non-retryable *> $null
+
+  return $LASTEXITCODE -eq 0
+}
+
 function Should-Dispatch {
   param(
     [string]$CurrentOwner,
-    [string]$CurrentToken
+    [string]$CurrentToken,
+    [string]$MessageId
   )
 
   if ($CurrentOwner -ne $Owner) {
@@ -62,7 +81,13 @@ function Should-Dispatch {
 
   if (Test-Path -LiteralPath $CacheFile) {
     $cachedToken = Get-Content -LiteralPath $CacheFile -Raw
-    return $cachedToken -ne $CurrentToken
+    if ($cachedToken -eq $CurrentToken) {
+      return $false
+    }
+  }
+
+  if (Test-ReceiptAlreadyRecorded -MessageId $MessageId) {
+    return $false
   }
 
   return $true
@@ -91,7 +116,7 @@ while ($true) {
   $state = Get-RemoteStateJson | ConvertFrom-Json
   $token = Get-DispatchToken
 
-  if (Should-Dispatch -CurrentOwner ([string]$state.owner) -CurrentToken $token) {
+  if (Should-Dispatch -CurrentOwner ([string]$state.owner) -CurrentToken $token -MessageId ([string]$state.message_id)) {
     try {
       Invoke-Dispatch
 

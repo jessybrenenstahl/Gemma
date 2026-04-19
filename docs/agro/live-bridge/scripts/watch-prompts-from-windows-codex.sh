@@ -8,7 +8,11 @@ REPO_ROOT="/Users/jessybrenenstahl/Documents/Sprint/Gemma"
 BRIDGE_ROOT="${HOME}/codex-composer-bridge"
 INBOX_DIR="${BRIDGE_ROOT}/inbox"
 PROCESSED_DIR="${BRIDGE_ROOT}/processed"
+REMOTE_NAME="origin"
+BRANCH_NAME="codex/mac-codex-first-sync"
+REMOTE_REF="${REMOTE_NAME}/${BRANCH_NAME}"
 RECORD_SCRIPT="docs/agro/live-bridge/scripts/record-direct-link-delivery.mjs"
+RECEIPT_QUERY_SCRIPT="docs/agro/live-bridge/scripts/query-direct-link-receipt.mjs"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -74,8 +78,44 @@ function record_delivery() {
   fi
 }
 
+function receipt_already_recorded() {
+  local message_id="$1"
+
+  if [[ -z "${message_id}" ]]; then
+    return 1
+  fi
+
+  git -C "${REPO_ROOT}" fetch "${REMOTE_NAME}" "${BRANCH_NAME}" >/dev/null 2>&1 || true
+
+  node "${REPO_ROOT}/${RECEIPT_QUERY_SCRIPT}" \
+    --repo-root "${REPO_ROOT}" \
+    --git-ref "${REMOTE_REF}" \
+    --target-lane "mac-codex" \
+    --message-id "${message_id}" \
+    --require-non-retryable >/dev/null 2>&1
+}
+
+function mark_stale_files() {
+  local newest_file="$1"
+  local newest_message_id="$2"
+  local candidate=""
+
+  while IFS= read -r candidate; do
+    [[ -z "${candidate}" ]] && continue
+    [[ "${candidate}" == "${newest_file}" ]] && continue
+
+    local stale_message_id=""
+    local stale_name=""
+    stale_message_id="$(extract_message_id "${candidate}")"
+    stale_name="$(basename "${candidate}")"
+    mv "${candidate}" "${PROCESSED_DIR}/"
+    record_delivery "${stale_message_id}" "stale_skipped" "${stale_name}" "superseded_by:${newest_message_id:-unknown}"
+    echo "Skipped stale prompt ${stale_name}."
+  done < <(find "${INBOX_DIR}" -maxdepth 1 -type f -name 'codex-prompt-from-*.md' | sort)
+}
+
 while true; do
-  NEXT_FILE="$(find "${INBOX_DIR}" -maxdepth 1 -type f -name 'codex-prompt-from-*.md' | sort | head -n 1)"
+  NEXT_FILE="$(find "${INBOX_DIR}" -maxdepth 1 -type f -name 'codex-prompt-from-*.md' | sort | tail -n 1)"
 
   if [[ -z "${NEXT_FILE}" ]]; then
     sleep 0.5
@@ -85,6 +125,17 @@ while true; do
   DELIVERY_STATUS=""
   MESSAGE_ID="$(extract_message_id "${NEXT_FILE}")"
   PROMPT_FILE_NAME="$(basename "${NEXT_FILE}")"
+  mark_stale_files "${NEXT_FILE}" "${MESSAGE_ID}"
+
+  if receipt_already_recorded "${MESSAGE_ID}"; then
+    mv "${NEXT_FILE}" "${PROCESSED_DIR}/"
+    echo "Skipped duplicate prompt ${PROMPT_FILE_NAME}."
+    record_delivery "${MESSAGE_ID}" "duplicate_skipped" "${PROMPT_FILE_NAME}" "already_recorded"
+    if [[ "${ONCE}" -eq 1 ]]; then
+      break
+    fi
+    continue
+  fi
 
   if [[ -s "${NEXT_FILE}" ]]; then
     pbcopy < "${NEXT_FILE}"
