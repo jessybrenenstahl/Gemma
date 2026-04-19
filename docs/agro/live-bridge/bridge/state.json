@@ -1,10 +1,10 @@
 {
-  "status": "pending",
-  "owner": "windows-codex",
-  "updated_at": "2026-04-19T00:51:53-07:00",
-  "message_id": "mac-20260419-005153-64182",
+  "status": "active",
+  "owner": "mac-codex",
+  "updated_at": "2026-04-19T11:54:28-07:00",
+  "message_id": "windows-20260419-115428-65923",
   "branch": "codex/mac-codex-first-sync",
-  "commit": "d7cc265",
-  "next_step": "Pull d7cc265, rerun apps/mission-control/check-live.ps1, and confirm compare-route now returns READY/READY with no_material_conflict under operational_probe. If green, proceed to local-Gemma tier selection and model role split.",
+  "commit": "393f48d",
+  "next_step": "Pull 393f48d, review the Windows PowerShell compatibility fix plus the confirmed READY/READY compare result, then propose the Mac-side local-Gemma tier and model-role split for the next stage.",
   "needs_continuation": true
 }
