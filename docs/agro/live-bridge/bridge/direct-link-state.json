@@ -1,5 +1,15 @@
 {
-  "updated_at": "",
+  "updated_at": "2026-04-19T20:22:21.801Z",
   "last_delivered_to_mac": null,
-  "last_delivered_to_windows": null
+  "last_delivered_to_windows": {
+    "message_id": "mac-20260419-131829-5383",
+    "source_lane": "mac-codex",
+    "target_lane": "windows-codex",
+    "delivery_status": "app_delivered_unconfirmed",
+    "prompt_file": "repo-bridge",
+    "notes": "repo_watcher_path",
+    "delivered_at": "2026-04-19T20:22:21.801Z",
+    "recorded_from_commit": "c885249",
+    "recorded_from_branch": "codex/mac-codex-first-sync"
+  }
 }
