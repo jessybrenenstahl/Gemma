@@ -10,5 +10,5 @@ If Taildrop fails, output the report text directly so it can be copy-pasted.
 """
 rrule = "FREQ=MINUTELY;INTERVAL=5"
 status = "ACTIVE"
-cwds = ["/Users/jessy"]
+cwds = ["/Users/jessybrenenstahl"]
 model = "gpt-4o"

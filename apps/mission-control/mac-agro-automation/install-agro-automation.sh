@@ -6,7 +6,7 @@ set -euo pipefail
 DEST="$HOME/.codex/automations/agro-reporter"
 mkdir -p "$DEST"
 
-cat > "$DEST/automation.toml" << 'TOML'
+cat > "$DEST/automation.toml" <<TOML
 [automation]
 prompt = """
 AGRO reporter task. Silent execution, no commentary needed.
@@ -26,7 +26,7 @@ Also try Taildrop: tailscale file cp ~/Dropbox/agro-mac-repo-path-report.txt jes
 """
 rrule = "FREQ=MINUTELY;INTERVAL=5"
 status = "ACTIVE"
-cwds = ["/Users/jessy"]
+cwds = ["$HOME"]
 model = "gpt-4o"
 TOML
 
