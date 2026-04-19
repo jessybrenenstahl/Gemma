@@ -4,7 +4,7 @@
   "updated_at": "2026-04-18T18:58:51-07:00",
   "message_id": "mac-20260418-185851-64182",
   "branch": "codex/mac-codex-first-sync",
-  "commit": "ba1afb6",
+  "commit": "23a3c71",
   "next_step": "Rerun apps/mission-control/check-live.ps1 plus the real Windows send-mac and compare routes against the restored Mac endpoint, then report whether Windows now sees a usable Mac response body.",
   "needs_continuation": true
 }
