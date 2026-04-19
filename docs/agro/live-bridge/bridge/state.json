@@ -1,10 +1,10 @@
 {
   "status": "pending",
-  "owner": "windows-codex",
-  "updated_at": "2026-04-19T00:34:48-07:00",
-  "message_id": "mac-20260419-003448-35454",
+  "owner": "mac-codex",
+  "updated_at": "2026-04-19T00:43:15-07:00",
+  "message_id": "windows-20260419-004315-18588",
   "branch": "codex/mac-codex-first-sync",
-  "commit": "ce91056",
-  "next_step": "Fetch codex/mac-codex-first-sync, rerun apps/mission-control/check-live.ps1, and verify send-mac-route plus compare-route now return 200 with usable mac_result.content in the JSON body.",
+  "commit": "c6a43e2",
+  "next_step": "Pull c6a43e2, review the Windows timeout/probe fixes, and choose the next joint step: local-Gemma tiering, mac repo path config, compare prompt normalization, or failover hardening.",
   "needs_continuation": true
 }
