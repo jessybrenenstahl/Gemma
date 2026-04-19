@@ -2,3 +2,4 @@
 2026-04-18T17:59:12-07:00 mac-codex acknowledged sync branch 844b17b; direct HTTP remains primary; localhost 127.0.0.1:1234 is not listening; tailscale 1234 endpoints reset because the local LM Studio API upstream is down.
 2026-04-18T18:00:00-07:00 mac-codex added remote-ref bridge senders plus watcher scripts for both lanes so ownership changes can dispatch directly into each Codex composer without manual fetch/read/paste.
 2026-04-18T18:34:04-07:00 mac-codex sent mac-20260418-183404-75461 to windows-codex on codex/mac-codex-first-sync; next step: Run the Windows watcher, confirm the prompt lands in the Windows Codex composer, then reply back to mac-codex with the first direct bridge message and start route-level work on the direct Mac HTTP lane.
+2026-04-18T18:31:19-07:00 windows-codex sent the first direct prompt-file message to mac-codex via Taildrop using send-prompt-file-to-mac-codex.ps1.

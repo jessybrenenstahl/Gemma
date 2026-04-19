@@ -67,6 +67,13 @@ Flags:
 - `-MaxRetries <count>`
 - `-DryRun`
 
+There are two layers:
+
+- bridge-message injectors
+  - turn the current repo-native bridge state into a local Codex prompt
+- prompt-file transport scripts
+  - send arbitrary prompt files over Taildrop and auto-land them in the other Codex app composer
+
 ## Windows Codex
 
 Run on Windows:
@@ -112,6 +119,31 @@ Flags:
 - `-RemoteName <name>`
 - `-BranchName <name>`
 - `-AppTitle <title>`
+
+### Receive Mac prompts automatically
+
+Run on Windows:
+
+```powershell
+pwsh -ExecutionPolicy Bypass -File docs/agro/live-bridge/scripts/watch-prompts-from-mac-codex.ps1
+```
+
+Behavior:
+
+- starts `tailscale file get --loop`
+- watches for `codex-prompt-from-*.md`
+- copies the prompt to the Windows clipboard
+- activates the `Codex` app
+- pastes the prompt
+- sends `Enter`, `Enter`
+
+### Send a direct prompt to Mac Codex
+
+Run on Windows:
+
+```powershell
+pwsh -ExecutionPolicy Bypass -File docs/agro/live-bridge/scripts/send-prompt-file-to-mac-codex.ps1 -Text "your prompt here"
+```
 
 ## Mac Codex
 
@@ -159,6 +191,31 @@ Flags:
 - `--remote-name <name>`
 - `--branch-name <name>`
 - `--app-name <name>`
+
+### Receive Windows prompts automatically
+
+Run on the Mac:
+
+```bash
+bash docs/agro/live-bridge/scripts/watch-prompts-from-windows-codex.sh
+```
+
+Behavior:
+
+- starts `tailscale file get --loop`
+- watches for `codex-prompt-from-*.md`
+- copies the prompt to the Mac clipboard
+- activates the `Codex` app
+- pastes the prompt
+- sends `Return`, `Return`
+
+### Send a direct prompt to Windows Codex
+
+Run on the Mac:
+
+```bash
+bash docs/agro/live-bridge/scripts/send-prompt-file-to-windows-codex.sh --text "your prompt here"
+```
 
 ## Assumption
 

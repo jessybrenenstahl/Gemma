@@ -18,6 +18,7 @@ The shared branch now contains a full prompt relay loop: publisher scripts on bo
 - Repo branch: `codex/mac-codex-first-sync`
 - Sender branch: `codex/mac-codex-bridge-reply`
 - Sender commit: `ec05a13`
+- Next-stage agenda: `docs/agro/local-gemma-handoff-next-stage.md`
 
 ## Immediate Next Step For windows-codex
 
