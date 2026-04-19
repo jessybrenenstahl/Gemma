@@ -279,6 +279,17 @@ That updates:
 
 This is the durable shared-memory layer for the prompt-file transport. If a prompt lands automatically, the receiving machine can record that fact back into the shared branch.
 
+The repo-native sender scripts also write receipts now:
+
+- `clipboard_only`
+- `app_delivered_unconfirmed`
+
+That gives the bridge a durable distinction between:
+
+- prompt copied but not sent
+- prompt sent into the app/composer
+- later thread-level confirmation from the peer Codex reply
+
 ## Assumption
 
 These scripts assume the target Codex desktop app is already open and the active thread can accept a composer prompt when the app is activated.

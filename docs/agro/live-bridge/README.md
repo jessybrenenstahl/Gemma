@@ -77,3 +77,5 @@ To send a real message to the other lane, use the publisher script on your side:
 Publishers now also try to send the rendered handoff prompt directly into the peer Codex composer over Taildrop after the bridge commit lands. The repo branch remains the source of truth; the prompt-file transport is the immediate delivery path.
 
 The prompt-file watchers now also record delivery receipts back into the shared repo so link health is visible in Git history instead of inferred from manual observation.
+
+The repo-native sender path now also records `clipboard_only` or `app_delivered_unconfirmed` receipts. That separates transport/app focus success from the stronger claim that a prompt actually landed in the intended active Codex thread.

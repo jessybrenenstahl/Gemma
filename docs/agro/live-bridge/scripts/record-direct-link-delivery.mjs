@@ -122,6 +122,21 @@ function runGitInDir(dir, args, options = {}) {
   return typeof output === "string" ? output.trim() : "";
 }
 
+function tryFetchRemote(repoRoot, remoteName, branchName) {
+  try {
+    runGit(repoRoot, ["fetch", remoteName, branchName], {
+      stdio: ["ignore", "ignore", "pipe"],
+    });
+    return true;
+  } catch (error) {
+    const message = String(error?.stderr || error?.message || "").trim();
+    if (message) {
+      console.warn(`Warning: fetch ${remoteName}/${branchName} failed, using cached remote-tracking state. ${message}`);
+    }
+    return false;
+  }
+}
+
 function isoTimestamp() {
   return new Date().toISOString().replace(".000Z", "Z");
 }
@@ -207,7 +222,7 @@ function main() {
   const remoteRef = `${options.remoteName}/${options.branchName}`;
 
   if (options.dryRun) {
-    runGit(options.repoRoot, ["fetch", options.remoteName, options.branchName], { stdio: ["ignore", "ignore", "pipe"] });
+    tryFetchRemote(options.repoRoot, options.remoteName, options.branchName);
     const tempDir = mkdtempSync(path.join(tmpdir(), "agro-delivery-dryrun-"));
     try {
       runGit(options.repoRoot, ["worktree", "add", "--detach", tempDir, remoteRef], {
@@ -233,7 +248,7 @@ function main() {
   }
 
   for (let attempt = 1; attempt <= options.maxRetries; attempt += 1) {
-    runGit(options.repoRoot, ["fetch", options.remoteName, options.branchName], { stdio: ["ignore", "ignore", "pipe"] });
+    tryFetchRemote(options.repoRoot, options.remoteName, options.branchName);
     const tempDir = mkdtempSync(path.join(tmpdir(), "agro-delivery-"));
 
     try {

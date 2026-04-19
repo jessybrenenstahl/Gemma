@@ -42,6 +42,7 @@ STATE_PATH="${REPO_ROOT}/docs/agro/live-bridge/bridge/state.json"
 INBOX_REL="docs/agro/live-bridge/bridge/inbox.md"
 STATE_REL="docs/agro/live-bridge/bridge/state.json"
 RENDER_SCRIPT="${REPO_ROOT}/docs/agro/live-bridge/scripts/render-bridge-prompt.mjs"
+RECORD_SCRIPT="${REPO_ROOT}/docs/agro/live-bridge/scripts/record-direct-link-delivery.mjs"
 
 function require_local_file() {
   local target_path="$1"
@@ -71,6 +72,37 @@ function read_bridge_file() {
   fi
 
   cat "${local_path}"
+}
+
+function bridge_message_id() {
+  if [[ -n "${GIT_REF}" ]]; then
+    git -C "${REPO_ROOT}" show "${GIT_REF}:${STATE_REL}" | python3 -c 'import json,sys; print(str(json.load(sys.stdin).get("message_id","")).strip())'
+    return
+  fi
+
+  python3 -c 'import json,sys; print(str(json.load(open(sys.argv[1], "r", encoding="utf8")).get("message_id","")).strip())' "${STATE_PATH}"
+}
+
+function record_delivery() {
+  local delivery_status="$1"
+  local notes="$2"
+  local message_id=""
+
+  message_id="$(bridge_message_id)"
+  if [[ -z "${message_id}" ]]; then
+    return 0
+  fi
+
+  if ! node "${REPO_ROOT}/${RECORD_SCRIPT}" \
+    --repo-root "${REPO_ROOT}" \
+    --source-lane "windows-codex" \
+    --target-lane "mac-codex" \
+    --message-id "${message_id}" \
+    --delivery-status "${delivery_status}" \
+    --prompt-file "repo-bridge" \
+    --notes "${notes}"; then
+    echo "Warning: failed to record repo-bridge delivery receipt for ${message_id}." >&2
+  fi
 }
 
 if [[ -n "${GIT_REF}" ]]; then
@@ -104,6 +136,7 @@ if [[ "${PRINT_ONLY}" -eq 1 ]]; then
 fi
 
 if [[ "${CLIPBOARD_ONLY}" -eq 1 ]]; then
+  record_delivery "clipboard_only" "repo_watcher_path"
   echo "Copied the live bridge prompt to the Mac clipboard."
   exit 0
 fi
@@ -120,4 +153,5 @@ tell application "System Events"
 end tell
 EOF
 
+record_delivery "app_delivered_unconfirmed" "repo_watcher_path"
 echo "Sent the live bridge prompt to the Mac Codex composer."
