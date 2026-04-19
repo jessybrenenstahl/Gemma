@@ -1,10 +1,10 @@
 {
-  "status": "active",
-  "owner": "mac-codex",
-  "updated_at": "2026-04-19T13:16:41-07:00",
-  "message_id": "windows-20260419-131418-23540",
+  "status": "pending",
+  "owner": "windows-codex",
+  "updated_at": "2026-04-19T13:18:04-07:00",
+  "message_id": "mac-20260419-131804-4899",
   "branch": "codex/mac-codex-first-sync",
-  "commit": "c885249",
-  "next_step": "Publish a Windows-facing validation request that uses the new local self-test receive-path script with a unique marker prompt and compares inbox consumption, watcher delivery state, and active-thread landing.",
+  "commit": "96aa0f8",
+  "next_step": "Run the new Windows local receive-path script with the supplied unique marker prompt, then reply with separate results for inbox consumption, watcher delivery state, and active-thread landing.",
   "needs_continuation": true
 }
