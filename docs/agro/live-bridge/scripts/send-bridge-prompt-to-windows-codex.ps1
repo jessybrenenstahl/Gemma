@@ -16,6 +16,9 @@ $statePath = Join-Path $RepoRoot "docs\agro\live-bridge\bridge\state.json"
 $inboxRel = "docs/agro/live-bridge/bridge/inbox.md"
 $stateRel = "docs/agro/live-bridge/bridge/state.json"
 $renderScript = Join-Path $RepoRoot "docs\agro\live-bridge\scripts\render-bridge-prompt.mjs"
+$activationHelper = Join-Path $RepoRoot "docs\agro\live-bridge\scripts\activate-codex-window.ps1"
+
+. $activationHelper
 
 function Get-BridgeContent {
   param(
@@ -66,9 +69,8 @@ if ($ClipboardOnly) {
   return
 }
 
-Add-Type -AssemblyName Microsoft.VisualBasic | Out-Null
 $wShell = New-Object -ComObject WScript.Shell
-$activated = [Microsoft.VisualBasic.Interaction]::AppActivate($AppTitle)
+$activated = Invoke-CodexWindowActivation -AppTitle $AppTitle -ActivationDelayMs $ActivationDelayMs
 if (-not $activated) {
   throw "Could not activate the Codex app window using title '$AppTitle'."
 }

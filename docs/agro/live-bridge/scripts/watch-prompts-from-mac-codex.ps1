@@ -2,6 +2,7 @@ param(
   [string]$RepoRoot = "C:\Users\jessy\Documents\Codex\Gemma",
   [string]$InboxDir = $(Join-Path $env:USERPROFILE "codex-composer-bridge\inbox"),
   [string]$ProcessedDir = $(Join-Path $env:USERPROFILE "codex-composer-bridge\processed"),
+  [string]$DeferredDir = $(Join-Path $env:USERPROFILE "codex-composer-bridge\deferred"),
   [string]$AppTitle = "Codex",
   [int]$ActivationDelayMs = 700,
   [int]$PostPasteDelayMs = 200,
@@ -13,6 +14,12 @@ $ErrorActionPreference = "Stop"
 
 New-Item -ItemType Directory -Force -Path $InboxDir | Out-Null
 New-Item -ItemType Directory -Force -Path $ProcessedDir | Out-Null
+New-Item -ItemType Directory -Force -Path $DeferredDir | Out-Null
+
+$scriptDir = Split-Path -Parent $PSCommandPath
+$activationHelper = Join-Path $scriptDir "activate-codex-window.ps1"
+
+. $activationHelper
 
 $getProcess = Start-Process -FilePath tailscale -ArgumentList @(
   "file", "get", "--loop", "--conflict=rename", $InboxDir
@@ -20,7 +27,6 @@ $getProcess = Start-Process -FilePath tailscale -ArgumentList @(
 
 Write-Host "Watching for Mac Codex prompt files in $InboxDir"
 
-Add-Type -AssemblyName Microsoft.VisualBasic | Out-Null
 $wShell = New-Object -ComObject WScript.Shell
 $recordScript = Join-Path $RepoRoot "docs\agro\live-bridge\scripts\record-direct-link-delivery.mjs"
 
@@ -63,7 +69,10 @@ function Record-Delivery {
 
 try {
   while ($true) {
-    $nextFile = Get-ChildItem -LiteralPath $InboxDir -File -Filter "codex-prompt-from-*.md" -ErrorAction SilentlyContinue |
+    $nextFile = @(
+      Get-ChildItem -LiteralPath $DeferredDir -File -Filter "codex-prompt-from-*.md" -ErrorAction SilentlyContinue
+      Get-ChildItem -LiteralPath $InboxDir -File -Filter "codex-prompt-from-*.md" -ErrorAction SilentlyContinue
+    ) |
       Sort-Object LastWriteTime |
       Select-Object -First 1
 
@@ -78,9 +87,8 @@ try {
     if (-not [string]::IsNullOrWhiteSpace($payload)) {
       Set-Clipboard -Value $payload
       if (-not $NoSend) {
-        $activated = [Microsoft.VisualBasic.Interaction]::AppActivate($AppTitle)
+        $activated = Invoke-CodexWindowActivation -AppTitle $AppTitle -ActivationDelayMs $ActivationDelayMs
         if ($activated) {
-          Start-Sleep -Milliseconds $ActivationDelayMs
           $wShell.SendKeys("^v")
           Start-Sleep -Milliseconds $PostPasteDelayMs
           $wShell.SendKeys("{ENTER}")
@@ -88,17 +96,22 @@ try {
           $wShell.SendKeys("{ENTER}")
           $deliveryStatus = "delivered"
           Write-Host "Delivered $($nextFile.Name) into the Windows Codex composer."
+          Move-Item -LiteralPath $nextFile.FullName -Destination (Join-Path $ProcessedDir $nextFile.Name) -Force
         } else {
           $deliveryStatus = "activation_failed"
-          Write-Warning "Could not activate Codex. Prompt left in clipboard from $($nextFile.Name)."
+          if ($nextFile.DirectoryName -ne $DeferredDir) {
+            Move-Item -LiteralPath $nextFile.FullName -Destination (Join-Path $DeferredDir $nextFile.Name) -Force
+          }
+          Write-Warning "Could not activate Codex. Prompt kept for retry in $DeferredDir from $($nextFile.Name)."
+          Start-Sleep -Seconds 5
         }
       } else {
         $deliveryStatus = "clipboard_only"
         Write-Host "Loaded $($nextFile.Name) into the Windows clipboard only."
+        Move-Item -LiteralPath $nextFile.FullName -Destination (Join-Path $ProcessedDir $nextFile.Name) -Force
       }
     }
 
-    Move-Item -LiteralPath $nextFile.FullName -Destination (Join-Path $ProcessedDir $nextFile.Name) -Force
     if (-not $deliveryStatus) {
       $deliveryStatus = "empty"
     }

@@ -92,12 +92,17 @@ while ($true) {
   $token = Get-DispatchToken
 
   if (Should-Dispatch -CurrentOwner ([string]$state.owner) -CurrentToken $token) {
-    $cacheDir = Split-Path -Parent $CacheFile
-    if ($cacheDir -and -not (Test-Path -LiteralPath $cacheDir)) {
-      New-Item -ItemType Directory -Path $cacheDir -Force | Out-Null
+    try {
+      Invoke-Dispatch
+
+      $cacheDir = Split-Path -Parent $CacheFile
+      if ($cacheDir -and -not (Test-Path -LiteralPath $cacheDir)) {
+        New-Item -ItemType Directory -Path $cacheDir -Force | Out-Null
+      }
+      Set-Content -LiteralPath $CacheFile -Value $token -NoNewline
+    } catch {
+      Write-Warning "Bridge dispatch failed for $($state.message_id): $($_.Exception.Message)"
     }
-    Set-Content -LiteralPath $CacheFile -Value $token -NoNewline
-    Invoke-Dispatch
   } else {
     Write-Host "No new bridge task for $Owner on $remoteRef."
   }
