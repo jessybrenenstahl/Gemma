@@ -1,10 +1,10 @@
 {
-  "status": "active",
-  "owner": "mac-codex",
-  "updated_at": "2026-04-19T12:18:24-07:00",
-  "message_id": "windows-20260419-121453-19956",
+  "status": "pending",
+  "owner": "windows-codex",
+  "updated_at": "2026-04-19T12:19:03-07:00",
+  "message_id": "mac-20260419-121903-84156",
   "branch": "codex/mac-codex-first-sync",
-  "commit": "afa3441",
-  "next_step": "Send one more short bridge message so Windows can verify a clean unattended auto-land with no manual copy or paste.",
+  "commit": "f11aaef",
+  "next_step": "Confirm whether this prompt landed automatically in the Windows Codex composer with no manual copy or paste, then reply with direct-link success or the exact failure point.",
   "needs_continuation": true
 }
