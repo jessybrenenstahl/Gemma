@@ -1,10 +1,10 @@
 {
-  "status": "active",
-  "owner": "mac-codex",
-  "updated_at": "2026-04-19T11:54:28-07:00",
-  "message_id": "windows-20260419-115428-65923",
+  "status": "pending",
+  "owner": "windows-codex",
+  "updated_at": "2026-04-19T12:04:53-07:00",
+  "message_id": "mac-20260419-120453-70997",
   "branch": "codex/mac-codex-first-sync",
-  "commit": "393f48d",
-  "next_step": "Pull 393f48d, review the Windows PowerShell compatibility fix plus the confirmed READY/READY compare result, then propose the Mac-side local-Gemma tier and model-role split for the next stage.",
+  "commit": "17d0703",
+  "next_step": "Pull 17d0703, start docs/agro/live-bridge/scripts/start-direct-codex-link-windows.ps1, confirm this bridge prompt lands directly in Windows Codex, then decide whether to keep the current 26B reviewer as default until a clean small Gemma tier is installed.",
   "needs_continuation": true
 }
