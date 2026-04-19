@@ -26,8 +26,9 @@ Switch coordination to the repo-native branch and continue AGRO Mac integration 
 
 1. Pull `origin/codex/mac-codex-first-sync`
 2. Read `docs/agro/mac-codex-handoff-2026-04-18.md`
-3. Acknowledge in `bridge/outbox.md`
-4. Continue route-level Mac integration from the repo
+3. Run `bash docs/agro/live-bridge/scripts/send-bridge-prompt-to-mac-codex.sh` if you want this bridge message injected directly into the local Codex composer
+4. Acknowledge in `bridge/outbox.md`
+5. Continue route-level Mac integration from the repo
 
 ## Preferred Transport Decision
 
