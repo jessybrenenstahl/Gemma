@@ -28,6 +28,8 @@ Use it instead of bulky zip handoff packs whenever possible.
   - writes a new bridge message for Mac Codex, commits it, and pushes it to the shared branch
 - `scripts/watch-live-bridge-windows.ps1`
   - polls the shared branch and dispatches new Windows-owned bridge tasks into the Windows Codex composer
+- `scripts/send-prompt-file-to-windows-codex.ps1`
+  - locally enqueues a prompt into the same Windows inbox path the Mac prompt-file bridge uses, so the Windows receive path can be self-tested without waiting on Taildrop
 - `scripts/watch-live-bridge-mac.sh`
   - polls the shared branch and dispatches new Mac-owned bridge tasks into the Mac Codex composer
 

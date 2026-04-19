@@ -161,6 +161,20 @@ Behavior:
 - pastes the prompt
 - sends `Enter`, `Enter`
 
+### Self-test the Windows receive path locally
+
+Run on Windows:
+
+```powershell
+pwsh -ExecutionPolicy Bypass -File docs/agro/live-bridge/scripts/send-prompt-file-to-windows-codex.ps1 -Text "WINDOWS SELF PROMPT TEST"
+```
+
+Behavior:
+
+- writes a prompt file directly into the same local inbox directory the Mac Taildrop watcher feeds
+- exercises the same downstream Windows watcher path Mac uses after transport
+- optionally waits for the file to move out of inbox so the operator can tell whether it was consumed
+
 ### Send a direct prompt to Mac Codex
 
 Run on Windows:
