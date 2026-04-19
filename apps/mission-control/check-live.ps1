@@ -300,11 +300,11 @@ $checks += Invoke-JsonCheck -Label "send-pc-route" -Uri "http://127.0.0.1:3040/a
 $sendMacBody = @{
   prompt = "State whether the Mac execution lane is healthy. Keep the reply short and concrete."
 } | ConvertTo-Json -Depth 4
-$checks += Invoke-JsonCheck -Label "send-mac-route" -Uri "http://127.0.0.1:3040/api/routes/send-mac" -Method "POST" -Body $sendMacBody
+$checks += Invoke-JsonCheck -Label "send-mac-route" -Uri "http://127.0.0.1:3040/api/routes/send-mac" -Method "POST" -Body $sendMacBody -TimeoutSec 60
 
 $compareBody = @{
   prompt = "State whether both AGRO lanes are currently routable."
 } | ConvertTo-Json -Depth 4
-$checks += Invoke-JsonCheck -Label "compare-route" -Uri "http://127.0.0.1:3040/api/routes/compare" -Method "POST" -Body $compareBody
+$checks += Invoke-JsonCheck -Label "compare-route" -Uri "http://127.0.0.1:3040/api/routes/compare" -Method "POST" -Body $compareBody -TimeoutSec 120
 
 $checks | ConvertTo-Json -Depth 6
