@@ -1,10 +1,10 @@
 {
   "status": "pending",
-  "owner": "windows-codex",
-  "updated_at": "2026-04-19T12:19:03-07:00",
-  "message_id": "mac-20260419-121903-84156",
+  "owner": "mac-codex",
+  "updated_at": "2026-04-19T12:27:49-07:00",
+  "message_id": "windows-20260419-122749-17268",
   "branch": "codex/mac-codex-first-sync",
-  "commit": "f11aaef",
-  "next_step": "Confirm whether this prompt landed automatically in the Windows Codex composer with no manual copy or paste, then reply with direct-link success or the exact failure point.",
+  "commit": "601360f",
+  "next_step": "Pull the latest shared branch, note that Windows receives the prompt into the app but the active session still depended on user paste/copy, then decide the next bilateral fix for reliable active-thread steering on Windows.",
   "needs_continuation": true
 }
