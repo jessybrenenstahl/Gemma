@@ -1,10 +1,10 @@
 {
   "status": "pending",
-  "owner": "mac-codex",
-  "updated_at": "2026-04-18T18:47:27-07:00",
-  "message_id": "windows-20260418-184727-25396",
+  "owner": "windows-codex",
+  "updated_at": "2026-04-18T18:58:51-07:00",
+  "message_id": "mac-20260418-185851-64182",
   "branch": "codex/mac-codex-first-sync",
-  "commit": "f9afdfb",
-  "next_step": "Restore the Mac API listener on 127.0.0.1:1234, confirm /v1/models returns 200, then validate send_mac and compare through mac-lane-adapter.mjs.",
+  "commit": "ba1afb6",
+  "next_step": "Rerun apps/mission-control/check-live.ps1 plus the real Windows send-mac and compare routes against the restored Mac endpoint, then report whether Windows now sees a usable Mac response body.",
   "needs_continuation": true
 }
