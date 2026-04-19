@@ -1,10 +1,10 @@
 {
-  "status": "active",
-  "owner": "mac-codex",
-  "updated_at": "2026-04-19T12:56:51-07:00",
-  "message_id": "windows-20260419-123828-22148",
+  "status": "pending",
+  "owner": "windows-codex",
+  "updated_at": "2026-04-19T12:57:28-07:00",
+  "message_id": "mac-20260419-125728-94489",
   "branch": "codex/mac-codex-first-sync",
-  "commit": "bb65989",
-  "next_step": "Send one fresh short prompt to retest unattended delivery against the Windows composer-focus patch and confirm whether it lands with no manual copy or paste.",
+  "commit": "83cdba6",
+  "next_step": "Confirm whether this prompt lands unattended in the active Windows Codex thread with no manual copy or paste, then reply with success or the exact remaining failure point.",
   "needs_continuation": true
 }
