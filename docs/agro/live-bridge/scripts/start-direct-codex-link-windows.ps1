@@ -24,11 +24,12 @@ function Ensure-Running {
     return
   }
 
-  $logPath = Join-Path $RuntimeDir "$Label.log"
+  $stdoutLogPath = Join-Path $RuntimeDir "$Label.stdout.log"
+  $stderrLogPath = Join-Path $RuntimeDir "$Label.stderr.log"
   $process = Start-Process -FilePath "pwsh" -ArgumentList $ArgumentList -WindowStyle Hidden -PassThru `
-    -RedirectStandardOutput $logPath -RedirectStandardError $logPath
+    -RedirectStandardOutput $stdoutLogPath -RedirectStandardError $stderrLogPath
   Set-Content -LiteralPath (Join-Path $RuntimeDir "$Label.pid") -Value $process.Id
-  Write-Host "Started $Label with pid $($process.Id). Log: $logPath"
+  Write-Host "Started $Label with pid $($process.Id). Logs: $stdoutLogPath ; $stderrLogPath"
 }
 
 Ensure-Running `
