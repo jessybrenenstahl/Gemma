@@ -6,6 +6,8 @@ This branch is the first real Windows-to-Mac sync artifact for AGRO.
 
 Current branch: `codex/mac-codex-first-sync`
 
+Live bridge: `docs/agro/live-bridge/`
+
 ## What Landed Here
 
 - The Windows source-of-truth `apps/mission-control/` tree is now present on this branch.

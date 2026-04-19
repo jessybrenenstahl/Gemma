@@ -1,0 +1,10 @@
+{
+  "status": "pending",
+  "owner": "mac-codex",
+  "updated_at": "2026-04-18T17:55:25.5113936-07:00",
+  "message_id": "windows-2026-04-18-001",
+  "branch": "codex/mac-codex-first-sync",
+  "commit": "4a7158f",
+  "next_step": "Pull origin/codex/mac-codex-first-sync, read docs/agro/mac-codex-handoff-2026-04-18.md, then acknowledge in bridge/outbox.md.",
+  "needs_continuation": true
+}
