@@ -1,14 +1,14 @@
 {
-  "updated_at": "2026-04-19T23:48:57.496Z",
+  "updated_at": "2026-04-19T23:49:02.099Z",
   "last_delivered_to_mac": null,
   "last_delivered_to_windows": {
     "message_id": "mac-20260419-164852-4928",
     "source_lane": "mac-codex",
     "target_lane": "windows-codex",
     "delivery_status": "delivered",
-    "prompt_file": "codex-prompt-from-mac-codex-20260419-164855.md",
+    "prompt_file": "codex-prompt-from-mac-codex-20260419-164855 (1).md",
     "notes": "",
-    "delivered_at": "2026-04-19T23:48:57.496Z",
+    "delivered_at": "2026-04-19T23:49:02.099Z",
     "recorded_from_commit": "2c0a96d",
     "recorded_from_branch": "codex/mac-codex-first-sync"
   }
