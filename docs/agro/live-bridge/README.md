@@ -18,6 +18,10 @@ Use it instead of bulky zip handoff packs whenever possible.
   - injects the current bridge task into the Windows Codex composer
 - `scripts/send-bridge-prompt-to-mac-codex.sh`
   - injects the current bridge task into the Mac Codex composer
+- `scripts/publish-bridge-message-to-windows-codex.sh`
+  - writes a new bridge message for Windows Codex, commits it, and pushes it to the shared branch
+- `scripts/publish-bridge-message-to-mac-codex.ps1`
+  - writes a new bridge message for Mac Codex, commits it, and pushes it to the shared branch
 - `scripts/watch-live-bridge-windows.ps1`
   - polls the shared branch and dispatches new Windows-owned bridge tasks into the Windows Codex composer
 - `scripts/watch-live-bridge-mac.sh`
@@ -50,3 +54,8 @@ For more immediate coordination, keep the watcher script running on each side:
 - Mac: `bash docs/agro/live-bridge/scripts/watch-live-bridge-mac.sh`
 
 That turns bridge ownership changes into direct composer prompts instead of relying on manual fetch/read/paste loops.
+
+To send a real message to the other lane, use the publisher script on your side:
+
+- Mac -> Windows: `bash docs/agro/live-bridge/scripts/publish-bridge-message-to-windows-codex.sh ...`
+- Windows -> Mac: `pwsh -ExecutionPolicy Bypass -File docs/agro/live-bridge/scripts/publish-bridge-message-to-mac-codex.ps1 ...`
