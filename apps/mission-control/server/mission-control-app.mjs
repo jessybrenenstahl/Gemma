@@ -4969,11 +4969,12 @@ async function executeLaneSet({
         return Promise.reject(preflight.error);
       }
 
+      const executionOperatorMode = execution.operatorMode || operatorMode;
       return execution.executor.execute({
         prompt: execution.prompt,
         sharedInstruction: execution.sharedInstruction,
         session: baseSession,
-        operatorMode,
+        operatorMode: executionOperatorMode,
       });
     })
   );
@@ -4991,17 +4992,21 @@ async function executeLaneSet({
     const preflight = preflightResults[index];
 
     if (outcome.status === "fulfilled") {
+      const transcriptOperatorMode = execution.transcriptOperatorMode || operatorMode;
       let normalizedResult = normalizeLaneExecutionResult(outcome.value, {
         lane: execution.lane,
         fallbackEventType:
           execution.fallbackEventType ||
           (execution.lane === "pc" ? "critique" : "agent_reply"),
       });
+      if (typeof execution.normalizeResult === "function") {
+        normalizedResult = execution.normalizeResult(normalizedResult);
+      }
       normalizedResult = await runMacVerificationIfNeeded({
         macVerificationPipeline,
         sessionManager,
         sessionId,
-        operatorMode,
+        operatorMode: transcriptOperatorMode,
         lane: execution.lane,
         executionResult: normalizedResult,
       });
@@ -5030,21 +5035,21 @@ async function executeLaneSet({
         sessionManager,
         sessionId,
         lane: execution.lane,
-        operatorMode,
+        operatorMode: transcriptOperatorMode,
         taskEventId: execution.taskEventId,
         executionResult: normalizedResult,
       });
       applyPcCritiquePromotion({
         sessionManager,
         sessionId,
-        operatorMode,
+        operatorMode: transcriptOperatorMode,
         laneResult,
         promotion: pcPromotionOutcome.promotion,
       });
       applyMacConfirmationGate({
         sessionManager,
         sessionId,
-        operatorMode,
+        operatorMode: transcriptOperatorMode,
         laneResult,
         confirmationGate: macConfirmationOutcome.confirmationGate,
       });
@@ -5510,6 +5515,92 @@ function buildCompareCardFromLaneResults({
   };
 }
 
+const DEFAULT_COMPARE_OPERATIONAL_PROBE_PROMPT =
+  "Return exactly READY if your lane is currently routable for this request. Otherwise return BLOCKED.";
+
+function isCompareOperationalProbe(body = {}) {
+  if (body?.operational_probe === true) {
+    return true;
+  }
+
+  const contract = String(body?.compare_contract || "").trim().toLowerCase();
+  return contract === "operational_probe" || contract === "health_check";
+}
+
+function buildComparePrompt(body = {}) {
+  if (!isCompareOperationalProbe(body)) {
+    return ensurePrompt(body);
+  }
+
+  return String(body.prompt || "").trim() || DEFAULT_COMPARE_OPERATIONAL_PROBE_PROMPT;
+}
+
+function buildCompareSharedInstruction(body = {}, lane) {
+  const explicit = String(
+    (lane === "mac" ? body.mac_shared_instruction : body.pc_shared_instruction) ||
+      body.shared_instruction ||
+      ""
+  ).trim();
+
+  if (!isCompareOperationalProbe(body)) {
+    const fallback =
+      lane === "mac"
+        ? "Answer independently from the Mac lane perspective."
+        : "Answer independently from the PC lane perspective.";
+    return explicit || fallback;
+  }
+
+  const laneSpecific =
+    lane === "mac"
+      ? "Treat routability as the ability of the Mac execution lane to answer this compare request successfully over its normal transport right now."
+      : "Treat routability as the ability of the PC reviewer lane to answer this compare request successfully over its normal transport right now.";
+
+  return [
+    "This is an operational health check, not an open-ended design comparison.",
+    "Return exactly READY if your lane is healthy for this request right now.",
+    "Return exactly BLOCKED if your lane is unavailable, timed out, or cannot complete this request right now.",
+    "Do not add explanation outside READY or BLOCKED.",
+    laneSpecific,
+    explicit,
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function normalizeOperationalProbeContent(content) {
+  const text = String(content || "").trim();
+  const normalized = text.toLowerCase();
+
+  if (!text) {
+    return "BLOCKED";
+  }
+
+  if (/^\s*ready\s*$/i.test(text)) {
+    return "READY";
+  }
+
+  if (/^\s*blocked\s*$/i.test(text)) {
+    return "BLOCKED";
+  }
+
+  if (
+    /\b(blocked|unavailable|unreachable|down|failed|failure|error|stalled|offline|degraded|timeout|timed out|cannot|can t|unable|unknown|unclear|indeterminate|unverifiable|not routable|not reachable|not healthy)\b/i.test(
+      normalized
+    )
+  ) {
+    return "BLOCKED";
+  }
+
+  return "READY";
+}
+
+function normalizeOperationalProbeLaneResult(executionResult) {
+  return {
+    ...executionResult,
+    content: normalizeOperationalProbeContent(executionResult?.content),
+  };
+}
+
 async function handleExecuteCritiqueRoute(
   {
     sessionManager,
@@ -5680,17 +5771,10 @@ async function handleCompareRoute(
   body
 ) {
   try {
-    const prompt = ensurePrompt(body);
-    const macSharedInstruction = String(
-      body.mac_shared_instruction ||
-        body.shared_instruction ||
-        "Answer independently from the Mac lane perspective."
-    ).trim();
-    const pcSharedInstruction = String(
-      body.pc_shared_instruction ||
-        body.shared_instruction ||
-        "Answer independently from the PC lane perspective."
-    ).trim();
+    const executionOperatorMode = isCompareOperationalProbe(body) ? "compare_probe" : "compare";
+    const prompt = buildComparePrompt(body);
+    const macSharedInstruction = buildCompareSharedInstruction(body, "mac");
+    const pcSharedInstruction = buildCompareSharedInstruction(body, "pc");
     const sessionId = ensureSession({
       sessionManager,
       sessionId: body.session_id,
@@ -5736,6 +5820,10 @@ async function handleCompareRoute(
           executor: macExecutor,
           prompt,
           sharedInstruction: macSharedInstruction,
+          operatorMode: executionOperatorMode,
+          normalizeResult: isCompareOperationalProbe(body)
+            ? normalizeOperationalProbeLaneResult
+            : null,
           taskEventId: macTaskEventId,
         },
         {
@@ -5743,6 +5831,10 @@ async function handleCompareRoute(
           executor: pcExecutor,
           prompt,
           sharedInstruction: pcSharedInstruction,
+          operatorMode: executionOperatorMode,
+          normalizeResult: isCompareOperationalProbe(body)
+            ? normalizeOperationalProbeLaneResult
+            : null,
           taskEventId: pcTaskEventId,
         },
       ],

@@ -21,7 +21,7 @@ function buildPcLaneAdapterError(message, code, cause = null) {
 }
 
 function inferTaskKind(operatorMode) {
-  return operatorMode === "compare" ? "compare" : "critique";
+  return operatorMode === "compare" || operatorMode === "compare_probe" ? "compare" : "critique";
 }
 
 function extractTextFromMessageContent(content) {

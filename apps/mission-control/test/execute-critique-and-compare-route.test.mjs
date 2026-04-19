@@ -313,3 +313,71 @@ test("compare route keeps clear arbitration when both lanes converge on a shared
     assert.match(data.session.compare_cards[0].disagreement, /No material disagreement detected/i);
   });
 });
+
+test("compare route supports operational probe normalization for health checks", async () => {
+  const calls = {
+    mac: null,
+    pc: null,
+  };
+
+  const app = createMissionControlApp({
+    macExecutor: {
+      async execute(args) {
+        calls.mac = args;
+        return {
+          content: "The user is asking for a health check.",
+          event_type: "agent_reply",
+          verified: false,
+          metrics: {
+            latency_ms: 410,
+            tokens_in: 12,
+            tokens_out: 1,
+          },
+        };
+      },
+    },
+    pcExecutor: {
+      async execute(args) {
+        calls.pc = args;
+        return {
+          content: "READY",
+          event_type: "compare",
+          verified: false,
+          metrics: {
+            latency_ms: 420,
+            tokens_in: 13,
+            tokens_out: 1,
+          },
+        };
+      },
+    },
+  });
+  app.sessionManager.now = makeClock();
+
+  await withServer(app, async (baseUrl) => {
+    const response = await fetch(`${baseUrl}/api/routes/compare`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        operational_probe: true,
+      }),
+    });
+
+    const data = await response.json();
+    assert.equal(response.status, 200);
+    assert.equal(data.ok, true);
+    assert.equal(calls.mac.prompt, "Return exactly READY if your lane is currently routable for this request. Otherwise return BLOCKED.");
+    assert.equal(calls.pc.prompt, calls.mac.prompt);
+    assert.match(calls.mac.sharedInstruction, /operational health check/i);
+    assert.match(calls.mac.sharedInstruction, /Return exactly READY/i);
+    assert.match(calls.pc.sharedInstruction, /Do not add explanation outside READY or BLOCKED/i);
+    assert.equal(data.mac_result.content, "READY");
+    assert.equal(data.pc_result.content, "READY");
+    assert.equal(data.arbitration.arbitration_state, "clear");
+    assert.equal(data.arbitration.reason_code, "no_material_conflict");
+    assert.equal(data.session.compare_cards.length, 1);
+    assert.equal(data.session.compare_cards[0].arbitration_status, "clear");
+  });
+});

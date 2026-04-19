@@ -41,6 +41,12 @@ const MAC_ROUTE_LINES = {
     "Do not anchor on what the reviewer lane might say.",
     "If your answer implies real execution authority, say so explicitly instead of assuming approval.",
   ],
+  compare_probe: [
+    "This is an operational probe, not an open-ended comparison.",
+    "Return exactly READY if the Mac lane is routable for this request right now.",
+    "Return exactly BLOCKED if the Mac lane is not routable for this request right now.",
+    "Do not add explanation, justification, or extra prose outside READY or BLOCKED.",
+  ],
   default: [
     "Stay in the execution lane and keep the response grounded in evidence and unknowns.",
   ],
@@ -64,6 +70,12 @@ const PC_ROUTE_LINES = {
     "Answer independently before compare-card synthesis.",
     "Do not anchor on the Mac lane, and do not collapse into agreement too early.",
     "Make disagreements explicit when they exist.",
+  ],
+  compare_probe: [
+    "This is an operational probe, not an open-ended comparison.",
+    "Return exactly READY if the PC reviewer lane is routable for this request right now.",
+    "Return exactly BLOCKED if the PC reviewer lane is not routable for this request right now.",
+    "Do not add explanation, justification, or extra prose outside READY or BLOCKED.",
   ],
   default: [
     "Stay in the reviewer lane and keep critique concrete.",
