@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jessybrenenstahl/Gemma/packages/agro-shared/schemas/transcript-event.schema.json",
+  "title": "TranscriptEvent",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "lane": {
+      "type": "string",
+      "enum": ["shared", "mac", "pc"]
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "operator_prompt",
+        "agent_reply",
+        "execution_action",
+        "critique",
+        "compare",
+        "verification",
+        "error",
+        "arbitration"
+      ]
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "round": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "routing_mode": {
+      "$ref": "./route-mode.schema.json"
+    },
+    "content": {
+      "type": "string",
+      "default": ""
+    },
+    "verified": {
+      "type": "boolean",
+      "default": false
+    },
+    "related_event_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "latency_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tokens_in": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tokens_out": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": ["latency_ms", "tokens_in", "tokens_out"]
+    }
+  },
+  "required": [
+    "id",
+    "lane",
+    "type",
+    "timestamp",
+    "round",
+    "routing_mode",
+    "content",
+    "verified",
+    "related_event_ids",
+    "metrics"
+  ]
+}

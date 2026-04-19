@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jessybrenenstahl/Gemma/packages/agro-shared/schemas/session-state.schema.json",
+  "title": "SessionState",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "session_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["starting", "running", "stopping", "stopped", "completed", "error"]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "mission_state": {
+      "$ref": "./mission-state.schema.json"
+    },
+    "mac_state": {
+      "$ref": "./agent-state.schema.json"
+    },
+    "pc_state": {
+      "$ref": "./agent-state.schema.json"
+    },
+    "compare_cards": {
+      "type": "array",
+      "items": {
+        "$ref": "./compare-card.schema.json"
+      },
+      "default": []
+    },
+    "transcript": {
+      "type": "array",
+      "items": {
+        "$ref": "./transcript-event.schema.json"
+      },
+      "default": []
+    },
+    "draft_prompt": {
+      "type": "string",
+      "default": ""
+    }
+  },
+  "required": [
+    "session_id",
+    "status",
+    "created_at",
+    "updated_at",
+    "mission_state",
+    "mac_state",
+    "pc_state",
+    "compare_cards",
+    "transcript",
+    "draft_prompt"
+  ]
+}

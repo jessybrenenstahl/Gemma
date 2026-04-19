@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jessybrenenstahl/Gemma/packages/agro-shared/schemas/agent-state.schema.json",
+  "title": "AgentState",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "agent_id": {
+      "type": "string",
+      "enum": ["mac", "pc"]
+    },
+    "role": {
+      "type": "string",
+      "enum": ["primary_executor", "peer_reviewer"]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "idle",
+        "thinking",
+        "awaiting_operator",
+        "executing",
+        "reviewing",
+        "comparing",
+        "verifying",
+        "awaiting_mac_result",
+        "blocked",
+        "degraded",
+        "disconnected"
+      ]
+    },
+    "current_task": {
+      "type": "string",
+      "default": ""
+    },
+    "last_action": {
+      "type": "string",
+      "default": ""
+    },
+    "last_verified_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "summary": {
+          "type": "string",
+          "default": ""
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "verification_type": {
+          "type": "string",
+          "enum": ["tool", "human", "peer", "system"]
+        }
+      },
+      "required": ["summary", "timestamp", "verification_type"]
+    },
+    "latest_error_gap": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "summary": {
+          "type": "string",
+          "default": ""
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["info", "warn", "high"]
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["summary", "severity", "timestamp"]
+    },
+    "confirmation_gate": {
+      "$ref": "./confirmation-gate.schema.json"
+    },
+    "latency_hint": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "label": {
+          "type": "string",
+          "enum": ["fast", "steady", "slow", "stalled"]
+        },
+        "ms_estimate": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": ["label", "ms_estimate"]
+    },
+    "last_heartbeat_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "default": null
+    },
+    "heartbeat_state": {
+      "type": "string",
+      "enum": ["idle", "active", "stalled"],
+      "default": "idle"
+    },
+    "authority_badge": {
+      "type": "string",
+      "enum": ["Primary body", "Peer / critic"]
+    },
+    "repo_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "repo": {
+          "type": "string",
+          "default": "jessybrenenstahl/Gemma"
+        },
+        "local_path": {
+          "type": ["string", "null"],
+          "default": null
+        },
+        "presence": {
+          "type": "string",
+          "enum": ["unknown", "present", "missing"],
+          "default": "unknown"
+        },
+        "usability": {
+          "type": "string",
+          "enum": ["unknown", "usable", "unusable"],
+          "default": "unknown"
+        },
+        "last_checked_at": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "default": null
+        },
+        "detail": {
+          "type": "string",
+          "default": ""
+        }
+      },
+      "required": [
+        "repo",
+        "local_path",
+        "presence",
+        "usability",
+        "last_checked_at",
+        "detail"
+      ]
+    }
+  },
+  "required": [
+    "agent_id",
+    "role",
+    "status",
+    "current_task",
+    "last_action",
+    "last_verified_result",
+    "latest_error_gap",
+    "confirmation_gate",
+    "latency_hint",
+    "last_heartbeat_at",
+    "heartbeat_state",
+    "authority_badge",
+    "repo_context"
+  ]
+}

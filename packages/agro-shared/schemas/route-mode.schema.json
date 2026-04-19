@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jessybrenenstahl/Gemma/packages/agro-shared/schemas/route-mode.schema.json",
+  "title": "RouteMode",
+  "type": "string",
+  "enum": [
+    "send_mac",
+    "send_pc",
+    "send_both",
+    "execute_critique",
+    "compare"
+  ]
+}

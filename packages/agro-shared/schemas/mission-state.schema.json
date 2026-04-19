@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jessybrenenstahl/Gemma/packages/agro-shared/schemas/mission-state.schema.json",
+  "title": "MissionState",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "mission_goal": {
+      "type": "string",
+      "default": ""
+    },
+    "operator_mode": {
+      "$ref": "./route-mode.schema.json"
+    },
+    "body_authority": {
+      "type": "string",
+      "enum": ["mac", "pc"]
+    },
+    "arbitration_state": {
+      "type": "string",
+      "enum": ["clear", "needs_review", "operator_decision"],
+      "default": "clear"
+    },
+    "current_compare_summary": {
+      "type": "string",
+      "default": ""
+    },
+    "active_risk_count": {
+      "type": "integer",
+      "minimum": 0,
+      "default": 0
+    },
+    "active_repo": {
+      "type": "string",
+      "default": "jessybrenenstahl/Gemma"
+    },
+    "last_updated_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "mission_goal",
+    "operator_mode",
+    "body_authority",
+    "arbitration_state",
+    "current_compare_summary",
+    "active_risk_count",
+    "active_repo",
+    "last_updated_at"
+  ]
+}

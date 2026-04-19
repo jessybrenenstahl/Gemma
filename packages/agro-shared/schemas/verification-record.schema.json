@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jessybrenenstahl/Gemma/packages/agro-shared/schemas/verification-record.schema.json",
+  "title": "VerificationRecord",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "summary": {
+      "type": "string"
+    },
+    "verification_type": {
+      "type": "string",
+      "enum": ["tool", "human", "peer", "system"]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["verified", "failed", "pending"]
+    },
+    "evidence": {
+      "type": "string"
+    },
+    "related_event_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "summary",
+    "verification_type",
+    "status",
+    "evidence",
+    "related_event_ids",
+    "timestamp"
+  ]
+}

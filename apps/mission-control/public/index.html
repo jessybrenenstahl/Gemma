@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AGRO Mission Control</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="control-rail">
+        <div class="brand-block">
+          <p class="eyebrow">Gemma / AGRO</p>
+          <h1>Mission Control</h1>
+          <p class="lede">
+            Mac is the primary execution body. PC is the slower peer reviewer.
+            Route one operator prompt through the lane you need and watch the state move.
+          </p>
+        </div>
+
+        <section class="panel-card">
+          <div class="section-head">
+            <h2>Control</h2>
+            <div class="inline-actions">
+              <button id="refreshButton" class="ghost-button" type="button">Refresh</button>
+              <button id="newSessionButton" class="ghost-button" type="button">New Mission</button>
+            </div>
+          </div>
+          <dl class="facts compact">
+            <div>
+              <dt>Server</dt>
+              <dd id="serverBadge" class="status-badge offline">Checking</dd>
+            </div>
+            <div>
+              <dt>Sessions</dt>
+              <dd id="sessionCount">0</dd>
+            </div>
+            <div>
+              <dt>Routes</dt>
+              <dd id="routeList">-</dd>
+            </div>
+            <div>
+              <dt>Latest Session</dt>
+              <dd id="latestSessionLabel">-</dd>
+            </div>
+          </dl>
+          <p id="flashMessage" class="flash-message" hidden></p>
+        </section>
+
+        <section class="panel-card">
+          <div class="section-head">
+            <h2>Lane Config</h2>
+            <div class="inline-actions">
+              <button id="runRecommendedActionButton" class="ghost-button" type="button">
+                Run Recommended Action
+              </button>
+              <button id="sendMacRepoNudgeButton" class="ghost-button" type="button">
+                Nudge Mac Now
+              </button>
+              <button id="requestMacRepoReportButton" class="ghost-button" type="button">
+                Ask Mac for Repo Path
+              </button>
+              <button id="sendMacRepoFallbackButton" class="ghost-button" type="button">
+                Send Repo Fallback to Mac
+              </button>
+              <button id="sendMacRepoManualButton" class="ghost-button" type="button">
+                Send Manual Block to Mac
+              </button>
+              <button id="startMacRepoWatcherButton" class="ghost-button" type="button">
+                Watch for Report
+              </button>
+              <button id="smartApplyMacRepoReportButton" class="ghost-button" type="button">
+                Smart Apply
+              </button>
+              <button id="pullApplyMacRepoReportButton" class="ghost-button" type="button">
+                Pull + Apply
+              </button>
+              <button id="applyMacRepoReportButton" class="ghost-button" type="button">
+                Apply Report
+              </button>
+              <button id="applyMacRepoReportTextButton" class="ghost-button" type="button">
+                Apply Pasted Report
+              </button>
+              <button id="probeMacRepoClipboardButton" class="ghost-button" type="button">
+                Refresh Clipboard
+              </button>
+              <button id="loadMacRepoReportClipboardButton" class="ghost-button" type="button">
+                Load Clipboard
+              </button>
+              <button id="applyMacRepoReportClipboardButton" class="ghost-button" type="button">
+                Apply Clipboard
+              </button>
+              <button id="clearMacRepoInputCandidateButton" class="ghost-button" type="button">
+                Clear Input Candidate
+              </button>
+              <button id="clearMacRepoPathButton" class="ghost-button" type="button">
+                Clear Mac Repo Path
+              </button>
+              <button id="saveLaneConfigButton" class="ghost-button" type="button">Save Paths</button>
+            </div>
+          </div>
+          <dl class="facts compact">
+            <div>
+              <dt>Active Repo</dt>
+              <dd id="laneConfigRepoLabel">-</dd>
+            </div>
+            <div>
+              <dt>Updated</dt>
+              <dd id="laneConfigUpdatedAt">-</dd>
+            </div>
+          </dl>
+          <label class="field">
+            <span>Mac Repo Path</span>
+            <input
+              id="macRepoPathInput"
+              type="text"
+              placeholder="/Users/.../Gemma"
+              autocomplete="off"
+            />
+          </label>
+          <p id="macRepoPathHint" class="micro-note">-</p>
+          <label class="field">
+            <span>PC Repo Path</span>
+            <input
+              id="pcRepoPathInput"
+              type="text"
+              placeholder="C:\Users\...\Gemma"
+              autocomplete="off"
+            />
+          </label>
+          <p id="pcRepoPathHint" class="micro-note">-</p>
+          <label class="field">
+            <span>Manual Mac Repo Report</span>
+            <textarea
+              id="macRepoReportTextInput"
+              rows="7"
+              placeholder="Paste USER=... / HOST=... / REPORT_STATUS=... / GEMMA_REPO_PATH=..., or just a Mac reply containing a plain /Users/.../Gemma path."
+            ></textarea>
+          </label>
+          <p class="micro-note">Use this if the Mac can show the report text but cannot Taildrop it back. A plain Mac repo path is fine too.</p>
+          <dl class="facts compact">
+            <div>
+              <dt>Mac Repo Report</dt>
+              <dd id="macRepoReport">-</dd>
+            </div>
+            <div>
+              <dt>Input Preview</dt>
+              <dd id="macRepoClipboardPreview">No input preview loaded.</dd>
+            </div>
+            <div>
+              <dt>Last Clipboard Probe</dt>
+              <dd id="macRepoClipboardProbe">No clipboard probe yet.</dd>
+            </div>
+            <div>
+              <dt>Last Auto-Probe</dt>
+              <dd id="macRepoAutoProbe">No auto-probe yet.</dd>
+            </div>
+            <div>
+              <dt>Auto-Probe Mode</dt>
+              <dd id="macRepoAutoProbeMode">-</dd>
+            </div>
+            <div>
+              <dt>Input Risk</dt>
+              <dd id="macRepoInputRisk">-</dd>
+            </div>
+            <div>
+              <dt>Manual Ingest Hint</dt>
+              <dd id="manualIngestHint">-</dd>
+            </div>
+            <div>
+              <dt>Lane Config Summary</dt>
+              <dd id="manualSummary">-</dd>
+            </div>
+            <div>
+              <dt>Recommended Action</dt>
+              <dd id="manualNextAction">-</dd>
+            </div>
+            <div>
+              <dt>Blocked By</dt>
+              <dd id="manualBlockedBy">No active manual-ingest blocker.</dd>
+            </div>
+            <div>
+              <dt>Next Success Path</dt>
+              <dd id="manualSuccessPath">-</dd>
+            </div>
+              <div>
+                <dt id="manualRunPathLabel">Run Path</dt>
+                <dd id="manualRetryPath">No retry needed.</dd>
+              </div>
+            <div>
+              <dt>Lane Config Action</dt>
+              <dd id="laneConfigAction">-</dd>
+            </div>
+            <div>
+              <dt>Lane Config State</dt>
+              <dd id="laneConfigStatus">-</dd>
+            </div>
+            <div>
+              <dt>Last Mac Repo Request</dt>
+              <dd id="macRepoRequestSend">-</dd>
+            </div>
+            <div>
+              <dt>Last Repo Nudge</dt>
+              <dd id="macRepoNudgeSend">-</dd>
+            </div>
+            <div>
+              <dt>Last Repo Fallback Send</dt>
+              <dd id="macRepoFallbackSend">-</dd>
+            </div>
+            <div>
+              <dt>Last Repo Manual Send</dt>
+              <dd id="macRepoManualSend">-</dd>
+            </div>
+            <div>
+              <dt>Last Smart Apply</dt>
+              <dd id="macRepoSmartApply">-</dd>
+            </div>
+            <div>
+              <dt>Last Input Clear</dt>
+              <dd id="macRepoInputClear">-</dd>
+            </div>
+            <div>
+              <dt>Last Repo Clear</dt>
+              <dd id="macRepoClear">-</dd>
+            </div>
+            <div>
+              <dt>Last Recommended Run</dt>
+              <dd id="macRepoRecommendedRun">-</dd>
+            </div>
+            <div>
+              <dt>Recommended Run State</dt>
+              <dd id="macRepoRecommendedRunState">-</dd>
+            </div>
+            <div>
+              <dt>Mac Repo Action Pack</dt>
+              <dd id="macRepoActionPack">-</dd>
+            </div>
+            <div>
+              <dt>Mac Repo Watcher</dt>
+              <dd id="macRepoWatcher">-</dd>
+            </div>
+          </dl>
+          <div class="recovery-log-block">
+            <p class="micro-note">Mac Repo Run Block</p>
+            <pre id="macRepoActionBlock" class="recovery-output">No Mac repo action block yet.</pre>
+          </div>
+          <div class="recovery-log-block">
+            <p class="micro-note">Mac Repo Watch Output</p>
+            <pre id="macRepoWatcherOutput" class="recovery-output">No Mac repo watcher output yet.</pre>
+          </div>
+        </section>
+
+        <section class="panel-card composer-card">
+          <div class="section-head">
+            <h2>Operator Composer</h2>
+            <span id="composerState" class="micro-note">Idle</span>
+          </div>
+
+          <label class="field">
+            <span>Prompt</span>
+            <textarea
+              id="promptInput"
+              rows="6"
+              placeholder="Give the mission-control surface one operator prompt."
+            ></textarea>
+          </label>
+
+          <label class="field">
+            <span>Optional Shared Framing</span>
+            <textarea
+              id="sharedInstructionInput"
+              rows="4"
+              placeholder="Optional extra context or constraints for the chosen route."
+            ></textarea>
+          </label>
+
+          <div class="action-grid">
+            <button class="route-button route-mac" data-route="send_mac" type="button">Send to Mac</button>
+            <button class="route-button route-pc" data-route="send_pc" type="button">Send to PC</button>
+            <button class="route-button route-both" data-route="send_both" type="button">Send to Both</button>
+            <button class="route-button route-exec" data-route="execute_critique" type="button">
+              Ask Mac to Execute + PC to Critique
+            </button>
+            <button class="route-button route-compare" data-route="compare" type="button">
+              Ask Both then Compare
+            </button>
+          </div>
+
+          <p class="hint">
+            The current session id is reused automatically. Start a new mission when you want a fresh thread.
+          </p>
+        </section>
+
+        <section class="panel-card">
+          <div class="section-head">
+            <h2>Recent Sessions</h2>
+            <span id="recentCount" class="micro-note">0</span>
+          </div>
+          <div id="recentSessions" class="recent-sessions"></div>
+        </section>
+
+        <section class="panel-card recovery-card">
+          <div class="section-head">
+            <h2>Recovery Watch</h2>
+            <div class="inline-actions">
+              <button id="pullTaildropButton" class="ghost-button" type="button">
+                Pull Taildrop Now
+              </button>
+              <button id="sendMacFallbackButton" class="ghost-button" type="button">
+                Send Fallback to Mac
+              </button>
+              <button id="sendMacActionPackButton" class="ghost-button" type="button">
+                Resend to Mac
+              </button>
+              <span id="recoveryStatusBadge" class="status-badge offline">Unknown</span>
+            </div>
+          </div>
+          <dl class="facts compact">
+            <div>
+              <dt>Summary</dt>
+              <dd id="recoverySummary">No recovery summary yet.</dd>
+            </div>
+            <div>
+              <dt>Watcher</dt>
+              <dd id="recoveryWatcher">Unknown</dd>
+            </div>
+            <div>
+              <dt>Updated</dt>
+              <dd id="recoveryUpdatedAt">-</dd>
+            </div>
+            <div>
+              <dt>Mac Probes</dt>
+              <dd id="recoveryProbeList">-</dd>
+            </div>
+            <div>
+              <dt>Net Diagnose</dt>
+              <dd id="recoveryDiagnostics">-</dd>
+            </div>
+            <div>
+              <dt>SSH Bridge</dt>
+              <dd id="recoverySshBridge">-</dd>
+            </div>
+            <div>
+              <dt>SSH User</dt>
+              <dd id="recoverySshUser">-</dd>
+            </div>
+            <div>
+              <dt>Last Repair</dt>
+              <dd id="recoveryRepair">-</dd>
+            </div>
+            <div>
+              <dt>Recovery Action</dt>
+              <dd id="recoveryAction">-</dd>
+            </div>
+            <div>
+              <dt>Taildrop Watcher</dt>
+              <dd id="taildropWatcher">-</dd>
+            </div>
+            <div>
+              <dt>Taildrop Inbox</dt>
+              <dd id="taildropInbox">-</dd>
+            </div>
+            <div>
+              <dt>Mac Report</dt>
+              <dd id="macBridgeReport">-</dd>
+            </div>
+            <div>
+              <dt>Mac Action Pack</dt>
+              <dd id="macActionPack">-</dd>
+            </div>
+            <div>
+              <dt>Last Send</dt>
+              <dd id="macActionSend">-</dd>
+            </div>
+            <div>
+              <dt>Last Fallback Send</dt>
+              <dd id="macFallbackSend">-</dd>
+            </div>
+            <div>
+              <dt>Last Pull</dt>
+              <dd id="taildropPull">-</dd>
+            </div>
+          </dl>
+          <div class="recovery-log-block">
+            <p class="micro-note">Watcher Output</p>
+            <pre id="recoveryOutput" class="recovery-output">No watcher output yet.</pre>
+          </div>
+          <div class="recovery-log-block">
+            <p class="micro-note">Mac Run Block</p>
+            <pre id="macActionBlock" class="recovery-output">No Mac action block yet.</pre>
+          </div>
+        </section>
+      </aside>
+
+      <main class="mission-stage">
+        <section class="overview-grid">
+          <article class="overview-card shared-card">
+            <div class="section-head">
+              <h2>Mission</h2>
+              <span id="missionStatusPill" class="status-badge offline">No Session</span>
+            </div>
+            <div class="hero-block">
+              <p id="missionGoal" class="hero-text">No active mission yet.</p>
+              <div class="hero-pills">
+                <span id="sessionIdPill" class="info-pill">Session: -</span>
+                <span id="modePill" class="info-pill">Mode: -</span>
+                <span id="arbitrationPill" class="info-pill">Arbitration: -</span>
+                <span id="riskPill" class="info-pill">Risk: -</span>
+              </div>
+            </div>
+            <dl class="facts">
+              <div>
+                <dt>Repo</dt>
+                <dd id="repoLabel">-</dd>
+              </div>
+              <div>
+                <dt>Compare Summary</dt>
+                <dd id="compareSummary">-</dd>
+              </div>
+              <div>
+                <dt>Last Updated</dt>
+                <dd id="updatedAtLabel">-</dd>
+              </div>
+            </dl>
+          </article>
+
+          <article class="overview-card lane-card mac-card">
+            <div class="section-head">
+              <h2>Mac Lane</h2>
+              <span id="macStatusPill" class="status-badge offline">Idle</span>
+            </div>
+            <div class="lane-metrics">
+              <span id="macAuthority" class="info-pill">Primary body</span>
+              <span id="macLatency" class="info-pill">Latency: -</span>
+              <span id="macHeartbeat" class="info-pill">Heartbeat: -</span>
+            </div>
+            <dl class="facts">
+              <div>
+                <dt>Current Task</dt>
+                <dd id="macTask">-</dd>
+              </div>
+              <div>
+                <dt>Last Action</dt>
+                <dd id="macAction">-</dd>
+              </div>
+              <div>
+                <dt>Last Verified Result</dt>
+                <dd id="macVerified">-</dd>
+              </div>
+              <div>
+                <dt>Latest Error / Gap</dt>
+                <dd id="macGap">-</dd>
+              </div>
+              <div>
+                <dt>Repo Context</dt>
+                <dd id="macRepo">-</dd>
+              </div>
+            </dl>
+            <div id="macConfirmation" class="alert-card" hidden>
+              <div class="alert-head">
+                <strong>Operator Confirmation Required</strong>
+                <button id="approveMacButton" class="route-button route-mac slim" type="button">
+                  Approve and Continue
+                </button>
+              </div>
+              <p id="macConfirmationSummary"></p>
+            </div>
+          </article>
+
+          <article class="overview-card lane-card pc-card">
+            <div class="section-head">
+              <h2>PC Lane</h2>
+              <span id="pcStatusPill" class="status-badge offline">Idle</span>
+            </div>
+            <div class="lane-metrics">
+              <span id="pcAuthority" class="info-pill">Peer / critic</span>
+              <span id="pcLatency" class="info-pill">Latency: -</span>
+              <span id="pcHeartbeat" class="info-pill">Heartbeat: -</span>
+            </div>
+            <dl class="facts">
+              <div>
+                <dt>Current Task</dt>
+                <dd id="pcTask">-</dd>
+              </div>
+              <div>
+                <dt>Last Action</dt>
+                <dd id="pcAction">-</dd>
+              </div>
+              <div>
+                <dt>Last Verified Result</dt>
+                <dd id="pcVerified">-</dd>
+              </div>
+              <div>
+                <dt>Latest Error / Gap</dt>
+                <dd id="pcGap">-</dd>
+              </div>
+              <div>
+                <dt>Repo Context</dt>
+                <dd id="pcRepo">-</dd>
+              </div>
+            </dl>
+          </article>
+        </section>
+
+        <section class="lane-grid">
+          <article class="lane-stream shared-stream">
+            <div class="section-head">
+              <h2>Shared Lane</h2>
+              <span id="sharedCount" class="micro-note">0 events</span>
+            </div>
+            <div id="sharedLaneFeed" class="feed-list"></div>
+          </article>
+
+          <article class="lane-stream mac-stream">
+            <div class="section-head">
+              <h2>Mac Lane Feed</h2>
+              <span id="macCount" class="micro-note">0 events</span>
+            </div>
+            <div id="macLaneFeed" class="feed-list"></div>
+          </article>
+
+          <article class="lane-stream pc-stream">
+            <div class="section-head">
+              <h2>PC Lane Feed</h2>
+              <span id="pcCount" class="micro-note">0 events</span>
+            </div>
+            <div id="pcLaneFeed" class="feed-list"></div>
+          </article>
+        </section>
+
+        <section class="compare-section">
+          <div class="section-head">
+            <h2>Compare Cards</h2>
+            <span id="compareCount" class="micro-note">0 cards</span>
+          </div>
+          <div id="compareCards" class="compare-cards"></div>
+        </section>
+      </main>
+    </div>
+
+    <template id="feedItemTemplate">
+      <article class="feed-item">
+        <div class="feed-head">
+          <span class="feed-type"></span>
+          <span class="feed-meta"></span>
+        </div>
+        <p class="feed-content"></p>
+      </article>
+    </template>
+
+    <template id="recentSessionTemplate">
+      <button class="session-chip" type="button">
+        <span class="session-chip-mode"></span>
+        <span class="session-chip-text"></span>
+      </button>
+    </template>
+
+    <template id="compareCardTemplate">
+      <article class="compare-card">
+        <div class="compare-head">
+          <span class="compare-status"></span>
+          <span class="compare-time"></span>
+        </div>
+        <h3 class="compare-question"></h3>
+        <dl class="compare-facts">
+          <div>
+            <dt>Mac</dt>
+            <dd class="compare-mac"></dd>
+          </div>
+          <div>
+            <dt>PC</dt>
+            <dd class="compare-pc"></dd>
+          </div>
+          <div>
+            <dt>Overlap</dt>
+            <dd class="compare-overlap"></dd>
+          </div>
+          <div>
+            <dt>Disagreement</dt>
+            <dd class="compare-disagreement"></dd>
+          </div>
+          <div>
+            <dt>Recommended Next Step</dt>
+            <dd class="compare-next-step"></dd>
+          </div>
+        </dl>
+      </article>
+    </template>
+
+    <script src="/app.js" defer></script>
+  </body>
+</html>

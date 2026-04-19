@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jessybrenenstahl/Gemma/packages/agro-shared/schemas/compare-card.schema.json",
+  "title": "CompareCard",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "question": {
+      "type": "string"
+    },
+    "mac_answer_summary": {
+      "type": "string"
+    },
+    "pc_answer_summary": {
+      "type": "string"
+    },
+    "overlap": {
+      "type": "string"
+    },
+    "disagreement": {
+      "type": "string"
+    },
+    "recommended_next_step": {
+      "type": "string"
+    },
+    "arbitration_status": {
+      "type": "string",
+      "enum": ["clear", "needs_review", "operator_decision"]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "id",
+    "question",
+    "mac_answer_summary",
+    "pc_answer_summary",
+    "overlap",
+    "disagreement",
+    "recommended_next_step",
+    "arbitration_status",
+    "created_at"
+  ]
+}

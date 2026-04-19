@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jessybrenenstahl/Gemma/packages/agro-shared/schemas/error-gap.schema.json",
+  "title": "ErrorGap",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "summary": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["info", "warn", "high"]
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "error",
+        "gap",
+        "warning",
+        "disconnect",
+        "stall",
+        "verification_failure",
+        "confirmation_required"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "superseded", "resolved"]
+    },
+    "superseded_by_event_id": {
+      "type": ["string", "null"],
+      "default": null
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "summary",
+    "severity",
+    "kind",
+    "status",
+    "superseded_by_event_id",
+    "timestamp"
+  ]
+}

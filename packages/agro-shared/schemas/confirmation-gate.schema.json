@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/jessybrenenstahl/Gemma/packages/agro-shared/schemas/confirmation-gate.schema.json",
+  "title": "ConfirmationGate",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": ["string", "null"],
+      "default": null
+    },
+    "status": {
+      "type": "string",
+      "enum": ["clear", "pending", "approved", "rejected"],
+      "default": "clear"
+    },
+    "summary": {
+      "type": "string",
+      "default": "No operator confirmation required."
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "none",
+        "destructive_filesystem",
+        "irreversible_external",
+        "credential_change",
+        "publish_merge",
+        "network_side_effect",
+        "mixed"
+      ],
+      "default": "none"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["info", "warn", "high"],
+      "default": "info"
+    },
+    "requested_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "default": null
+    },
+    "resolved_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "default": null
+    },
+    "operator_note": {
+      "type": "string",
+      "default": ""
+    },
+    "related_event_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    }
+  },
+  "required": [
+    "id",
+    "status",
+    "summary",
+    "category",
+    "severity",
+    "requested_at",
+    "resolved_at",
+    "operator_note",
+    "related_event_ids"
+  ]
+}
