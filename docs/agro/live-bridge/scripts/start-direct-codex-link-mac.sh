@@ -55,4 +55,4 @@ ensure_running \
 ensure_running \
   "watch-prompts-from-windows-codex" \
   "watch-prompts-from-windows-codex.sh" \
-  bash "${REPO_ROOT}/docs/agro/live-bridge/scripts/watch-prompts-from-windows-codex.sh" --app-name "${APP_NAME}"
+  bash "${REPO_ROOT}/docs/agro/live-bridge/scripts/watch-prompts-from-windows-codex.sh" --repo-root "${REPO_ROOT}" --app-name "${APP_NAME}"

@@ -48,5 +48,6 @@ Ensure-Running `
   -ArgumentList @(
     "-ExecutionPolicy", "Bypass",
     "-File", (Join-Path $RepoRoot "docs\agro\live-bridge\scripts\watch-prompts-from-mac-codex.ps1"),
+    "-RepoRoot", $RepoRoot,
     "-AppTitle", $AppTitle
   )

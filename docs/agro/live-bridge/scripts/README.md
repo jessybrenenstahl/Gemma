@@ -233,6 +233,7 @@ Behavior:
 - activates the `Codex` app
 - pastes the prompt
 - sends `Return`, `Return`
+- records a delivery receipt into `docs/agro/live-bridge/bridge/direct-link-state.json`
 
 ### Send a direct prompt to Windows Codex
 
@@ -262,6 +263,21 @@ These starters launch both:
 - the Taildrop prompt-file watcher
 
 With both starters running and direct prompt delivery enabled in the publisher scripts, a bridge publish can now land directly in the peer Codex composer without a manual copy step.
+
+## Direct-Link Delivery Receipts
+
+Both prompt-file watchers now call:
+
+```bash
+node docs/agro/live-bridge/scripts/record-direct-link-delivery.mjs ...
+```
+
+That updates:
+
+- `docs/agro/live-bridge/bridge/direct-link-state.json`
+- `docs/agro/live-bridge/logs/prompt-delivery.log`
+
+This is the durable shared-memory layer for the prompt-file transport. If a prompt lands automatically, the receiving machine can record that fact back into the shared branch.
 
 ## Assumption
 

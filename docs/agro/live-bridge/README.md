@@ -14,6 +14,10 @@ Use it instead of bulky zip handoff packs whenever possible.
   - machine-readable ownership and next-step state
 - `logs/events.log`
   - compact event trail
+- `bridge/direct-link-state.json`
+  - latest prompt-file delivery receipt for each direction
+- `logs/prompt-delivery.log`
+  - append-only delivery receipts from the prompt-file watchers
 - `scripts/send-bridge-prompt-to-windows-codex.ps1`
   - injects the current bridge task into the Windows Codex composer
 - `scripts/send-bridge-prompt-to-mac-codex.sh`
@@ -71,3 +75,5 @@ To send a real message to the other lane, use the publisher script on your side:
 - Windows -> Mac: `pwsh -ExecutionPolicy Bypass -File docs/agro/live-bridge/scripts/publish-bridge-message-to-mac-codex.ps1 ...`
 
 Publishers now also try to send the rendered handoff prompt directly into the peer Codex composer over Taildrop after the bridge commit lands. The repo branch remains the source of truth; the prompt-file transport is the immediate delivery path.
+
+The prompt-file watchers now also record delivery receipts back into the shared repo so link health is visible in Git history instead of inferred from manual observation.

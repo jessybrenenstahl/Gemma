@@ -1,4 +1,5 @@
 param(
+  [string]$RepoRoot = "C:\Users\jessy\Documents\Codex\Gemma",
   [string]$InboxDir = $(Join-Path $env:USERPROFILE "codex-composer-bridge\inbox"),
   [string]$ProcessedDir = $(Join-Path $env:USERPROFILE "codex-composer-bridge\processed"),
   [string]$AppTitle = "Codex",
@@ -21,6 +22,44 @@ Write-Host "Watching for Mac Codex prompt files in $InboxDir"
 
 Add-Type -AssemblyName Microsoft.VisualBasic | Out-Null
 $wShell = New-Object -ComObject WScript.Shell
+$recordScript = Join-Path $RepoRoot "docs\agro\live-bridge\scripts\record-direct-link-delivery.mjs"
+
+function Get-MessageId {
+  param([string]$Payload)
+
+  $match = [regex]::Match($Payload, '(?m)^Current message id:\s*(.+)\s*$')
+  if ($match.Success) {
+    return $match.Groups[1].Value.Trim()
+  }
+
+  return ""
+}
+
+function Record-Delivery {
+  param(
+    [string]$MessageId,
+    [string]$DeliveryStatus,
+    [string]$PromptFile,
+    [string]$Notes = ""
+  )
+
+  if (-not $MessageId) {
+    return
+  }
+
+  try {
+    & node $recordScript `
+      --repo-root $RepoRoot `
+      --source-lane "mac-codex" `
+      --target-lane "windows-codex" `
+      --message-id $MessageId `
+      --delivery-status $DeliveryStatus `
+      --prompt-file $PromptFile `
+      --notes $Notes
+  } catch {
+    Write-Warning "Failed to record delivery receipt for $MessageId: $($_.Exception.Message)"
+  }
+}
 
 try {
   while ($true) {
@@ -34,6 +73,8 @@ try {
     }
 
     $payload = Get-Content -LiteralPath $nextFile.FullName -Raw
+    $messageId = Get-MessageId -Payload $payload
+    $deliveryStatus = ""
     if (-not [string]::IsNullOrWhiteSpace($payload)) {
       Set-Clipboard -Value $payload
       if (-not $NoSend) {
@@ -45,16 +86,23 @@ try {
           $wShell.SendKeys("{ENTER}")
           Start-Sleep -Milliseconds 120
           $wShell.SendKeys("{ENTER}")
+          $deliveryStatus = "delivered"
           Write-Host "Delivered $($nextFile.Name) into the Windows Codex composer."
         } else {
+          $deliveryStatus = "activation_failed"
           Write-Warning "Could not activate Codex. Prompt left in clipboard from $($nextFile.Name)."
         }
       } else {
+        $deliveryStatus = "clipboard_only"
         Write-Host "Loaded $($nextFile.Name) into the Windows clipboard only."
       }
     }
 
     Move-Item -LiteralPath $nextFile.FullName -Destination (Join-Path $ProcessedDir $nextFile.Name) -Force
+    if (-not $deliveryStatus) {
+      $deliveryStatus = "empty"
+    }
+    Record-Delivery -MessageId $messageId -DeliveryStatus $deliveryStatus -PromptFile $nextFile.Name
     if ($Once) {
       break
     }
