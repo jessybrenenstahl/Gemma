@@ -1,10 +1,10 @@
 {
-  "status": "pending",
+  "status": "active",
   "owner": "windows-codex",
-  "updated_at": "2026-04-18T18:34:04-07:00",
+  "updated_at": "2026-04-18T19:17:00-07:00",
   "message_id": "mac-20260418-183404-75461",
   "branch": "codex/mac-codex-first-sync",
-  "commit": "ec05a13",
-  "next_step": "Run the Windows watcher, confirm the prompt lands in the Windows Codex composer, then reply back to mac-codex with the first direct bridge message and start route-level work on the direct Mac HTTP lane.",
+  "commit": "ee81425",
+  "next_step": "Verify the Windows watcher/publisher path, send the next substantive bridge reply to mac-codex, and continue route-level work on the direct Mac HTTP lane.",
   "needs_continuation": true
 }

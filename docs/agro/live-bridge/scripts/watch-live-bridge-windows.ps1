@@ -29,7 +29,7 @@ function Invoke-FetchRemote {
 function Get-RemoteStateJson {
   $content = git -C $RepoRoot show "${remoteRef}:${stateRel}" 2>$null
   if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($content)) {
-    throw "Required bridge file not found in git ref $remoteRef: $stateRel"
+    throw "Required bridge file not found in git ref ${remoteRef}: $stateRel"
   }
 
   return [string]$content
@@ -69,21 +69,21 @@ function Should-Dispatch {
 }
 
 function Invoke-Dispatch {
-  $args = @(
-    "-RepoRoot", $RepoRoot,
-    "-GitRef", $remoteRef,
-    "-AppTitle", $AppTitle
-  )
+  $dispatchArgs = @{
+    RepoRoot = $RepoRoot
+    GitRef = $remoteRef
+    AppTitle = $AppTitle
+  }
 
   if ($PrintOnly) {
-    $args += "-PrintOnly"
+    $dispatchArgs.PrintOnly = $true
   }
 
   if ($ClipboardOnly) {
-    $args += "-ClipboardOnly"
+    $dispatchArgs.ClipboardOnly = $true
   }
 
-  & $senderScript @args
+  & $senderScript @dispatchArgs
 }
 
 while ($true) {

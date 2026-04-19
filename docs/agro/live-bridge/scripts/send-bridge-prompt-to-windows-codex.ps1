@@ -25,7 +25,7 @@ function Get-BridgeContent {
   if ($GitRef) {
     $content = git -C $RepoRoot show "${GitRef}:${RelativePath}" 2>$null
     if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($content)) {
-      throw "Required bridge file not found in git ref $GitRef: $RelativePath"
+      throw "Required bridge file not found in git ref ${GitRef}: $RelativePath"
     }
     return [string]$content
   }
@@ -43,7 +43,7 @@ $nextStep = if ($state.next_step) { [string]$state.next_step } else { "Read the 
 
 if ($GitRef) {
   $readBlock = @"
-Read from git ref $GitRef:
+Read from git ref ${GitRef}:
 - $inboxRel
 - $stateRel
 
@@ -51,7 +51,7 @@ Acknowledge in repo bridge files:
 - $outboxPath
 - $statePath
 
-If your working tree is behind, inspect via git show $GitRef:<path> or fast-forward before acknowledging.
+If your working tree is behind, inspect via git show ${GitRef}:<path> or fast-forward before acknowledging.
 "@
 } else {
   $readBlock = @"

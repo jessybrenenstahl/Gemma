@@ -274,7 +274,7 @@ $checks += Invoke-CurlHttpCheck -Label "mac-http-jessys-mac-studio.tail972f90.ts
 $checks += Invoke-CurlHttpCheck -Label "mac-http-100.106.61.53_1234" -Uri "http://100.106.61.53:1234/v1/models"
 $checks += Invoke-CurlHttpCheck -Label "mac-http-jessys-mac-studio.tail972f90.ts.net_443" -Uri "https://jessys-mac-studio.tail972f90.ts.net/v1/models" -Insecure
 $pcChatBody = @{
-  model = "gemma4-26b-128k"
+  model = "gemma-4-26b-a4b-it"
   messages = @(
     @{
       role = "user"

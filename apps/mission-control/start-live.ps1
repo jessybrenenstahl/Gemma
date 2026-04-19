@@ -7,7 +7,7 @@ $macRepoWatcherPidPath = Join-Path $laneConfigDir "mac-repo-report-watcher.pid"
 $macRepoWatcherStartPath = Join-Path $laneConfigDir "last-mac-repo-report-watcher-start.json"
 $macRepoWatcherStartScript = Join-Path $appRoot "start-mac-repo-report-watcher.ps1"
 $lmStudioCli = "C:\Users\jessy\AppData\Local\Programs\LM Studio\resources\app\.webpack\lms.exe"
-$pcModel = "gemma4-26b-128k"
+$pcModel = "gemma-4-26b-a4b-it"
 $macModel = "google/gemma-4-26b-a4b"
 $macEndpointCandidates = @(
   "http://jessys-mac-studio.tail972f90.ts.net:1234",
