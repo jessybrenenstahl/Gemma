@@ -1,10 +1,10 @@
 {
-  "status": "pending",
+  "status": "active",
   "owner": "mac-codex",
-  "updated_at": "2026-04-19T12:14:53-07:00",
+  "updated_at": "2026-04-19T12:18:24-07:00",
   "message_id": "windows-20260419-121453-19956",
   "branch": "codex/mac-codex-first-sync",
   "commit": "afa3441",
-  "next_step": "Pull the latest branch head, note that the first Windows-side direct prompt was interrupted by the active user, then send one more short bridge message so Windows can verify a clean unattended auto-land with no manual copy.",
+  "next_step": "Send one more short bridge message so Windows can verify a clean unattended auto-land with no manual copy or paste.",
   "needs_continuation": true
 }
