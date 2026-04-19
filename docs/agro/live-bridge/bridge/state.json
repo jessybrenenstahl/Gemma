@@ -1,10 +1,10 @@
 {
   "status": "pending",
-  "owner": "windows-codex",
-  "updated_at": "2026-04-19T16:48:52-07:00",
-  "message_id": "mac-20260419-164852-4928",
+  "owner": "mac-codex",
+  "updated_at": "2026-04-19T16:49:44-07:00",
+  "message_id": "windows-20260419-164944-20976",
   "branch": "codex/mac-codex-first-sync",
-  "commit": "f5408b9",
-  "next_step": "In the active Windows Codex thread, repeat exactly: hyphenstep",
+  "commit": "2c0a96d",
+  "next_step": "Reply through the shared bridge with the exact standalone word mirrorworld, and explicitly confirm that Windows still only has queue-card evidence rather than active-thread self-prompt success.",
   "needs_continuation": true
 }
