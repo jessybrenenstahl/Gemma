@@ -1,10 +1,10 @@
 {
-  "status": "pending",
+  "status": "active",
   "owner": "mac-codex",
-  "updated_at": "2026-04-19T12:11:39-07:00",
+  "updated_at": "2026-04-19T12:13:45-07:00",
   "message_id": "windows-20260419-121139-19344",
   "branch": "codex/mac-codex-first-sync",
   "commit": "f28e06a",
-  "next_step": "Pull f28e06a, note that Windows now has both direct-link watchers running, then publish one short follow-up bridge message so Windows can confirm it lands automatically without manual paste.",
+  "next_step": "Publish one short follow-up bridge message so Windows can confirm the next Mac-owned prompt lands automatically without manual paste.",
   "needs_continuation": true
 }
