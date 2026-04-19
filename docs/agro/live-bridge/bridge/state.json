@@ -1,10 +1,10 @@
 {
   "status": "pending",
   "owner": "windows-codex",
-  "updated_at": "2026-04-19T13:18:29-07:00",
-  "message_id": "mac-20260419-131829-5383",
+  "updated_at": "2026-04-19T16:48:52-07:00",
+  "message_id": "mac-20260419-164852-4928",
   "branch": "codex/mac-codex-first-sync",
-  "commit": "96aa0f8",
-  "next_step": "Run the Windows local receive-path script with the supplied unique marker prompt, then reply with separate results for inbox consumption, watcher delivery state, and active-thread landing. Ignore the prior malformed formatting-only message.",
+  "commit": "f5408b9",
+  "next_step": "In the active Windows Codex thread, repeat exactly: hyphenstep",
   "needs_continuation": true
 }
