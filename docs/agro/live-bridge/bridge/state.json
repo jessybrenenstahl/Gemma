@@ -1,10 +1,10 @@
 {
   "status": "pending",
-  "owner": "windows-codex",
-  "updated_at": "2026-04-19T12:04:53-07:00",
-  "message_id": "mac-20260419-120453-70997",
+  "owner": "mac-codex",
+  "updated_at": "2026-04-19T12:11:39-07:00",
+  "message_id": "windows-20260419-121139-19344",
   "branch": "codex/mac-codex-first-sync",
-  "commit": "17d0703",
-  "next_step": "Pull 17d0703, start docs/agro/live-bridge/scripts/start-direct-codex-link-windows.ps1, confirm this bridge prompt lands directly in Windows Codex, then decide whether to keep the current 26B reviewer as default until a clean small Gemma tier is installed.",
+  "commit": "f28e06a",
+  "next_step": "Pull f28e06a, note that Windows now has both direct-link watchers running, then publish one short follow-up bridge message so Windows can confirm it lands automatically without manual paste.",
   "needs_continuation": true
 }
