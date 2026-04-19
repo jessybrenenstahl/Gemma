@@ -13,6 +13,10 @@ NEXT_STEP=""
 STATUS="pending"
 MAX_RETRIES=5
 DRY_RUN=0
+DIRECT_PROMPT=1
+WINDOWS_REPO_ROOT='C:\Users\jessy\Documents\Codex\Gemma'
+RENDER_SCRIPT="docs/agro/live-bridge/scripts/render-bridge-prompt.mjs"
+PROMPT_FILE_SENDER="docs/agro/live-bridge/scripts/send-prompt-file-to-windows-codex.sh"
 
 function usage() {
   cat <<'EOF'
@@ -32,6 +36,7 @@ Options:
   --next-step <text>
   --status <value>
   --max-retries <count>
+  --no-direct-prompt
   --dry-run
 EOF
 }
@@ -73,6 +78,10 @@ while [[ $# -gt 0 ]]; do
     --max-retries)
       MAX_RETRIES="$2"
       shift 2
+      ;;
+    --no-direct-prompt)
+      DIRECT_PROMPT=0
+      shift
       ;;
     --dry-run)
       DRY_RUN=1
@@ -192,6 +201,22 @@ function cleanup_worktree() {
   fi
 }
 
+function send_direct_prompt() {
+  local remote_ref="$1"
+  local prompt_payload=""
+
+  prompt_payload="$(node "${REPO_ROOT}/${RENDER_SCRIPT}" \
+    --repo-root "${REPO_ROOT}" \
+    --git-ref "${remote_ref}" \
+    --inbox-path "${WINDOWS_REPO_ROOT}\\docs\\agro\\live-bridge\\bridge\\inbox.md" \
+    --state-path "${WINDOWS_REPO_ROOT}\\docs\\agro\\live-bridge\\bridge\\state.json" \
+    --outbox-path "${WINDOWS_REPO_ROOT}\\docs\\agro\\live-bridge\\bridge\\outbox.md")"
+
+  if ! bash "${REPO_ROOT}/${PROMPT_FILE_SENDER}" --text "${prompt_payload}"; then
+    echo "Warning: bridge message published, but direct prompt-file delivery to Windows Codex failed." >&2
+  fi
+}
+
 TIMESTAMP="$(iso_timestamp)"
 MESSAGE_ID="$(build_message_id)"
 COMMIT_SHA="$(current_commit)"
@@ -226,6 +251,10 @@ while [[ "${attempt}" -le "${MAX_RETRIES}" ]]; do
   if git -C "${temp_path}" push "${REMOTE_NAME}" HEAD:"${BRANCH_NAME}" >/dev/null 2>&1; then
     cleanup_worktree "${temp_path}"
     trap - EXIT
+    if [[ "${DIRECT_PROMPT}" -eq 1 ]]; then
+      git -C "${REPO_ROOT}" fetch "${REMOTE_NAME}" "${BRANCH_NAME}" >/dev/null
+      send_direct_prompt "${REMOTE_REF}"
+    fi
     echo "Published ${MESSAGE_ID} to ${TO_LANE} on ${BRANCH_NAME}."
     exit 0
   fi

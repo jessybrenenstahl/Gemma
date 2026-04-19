@@ -15,6 +15,7 @@ $outboxPath = Join-Path $RepoRoot "docs\agro\live-bridge\bridge\outbox.md"
 $statePath = Join-Path $RepoRoot "docs\agro\live-bridge\bridge\state.json"
 $inboxRel = "docs/agro/live-bridge/bridge/inbox.md"
 $stateRel = "docs/agro/live-bridge/bridge/state.json"
+$renderScript = Join-Path $RepoRoot "docs\agro\live-bridge\scripts\render-bridge-prompt.mjs"
 
 function Get-BridgeContent {
   param(
@@ -37,44 +38,21 @@ function Get-BridgeContent {
   return Get-Content -LiteralPath $LocalPath -Raw
 }
 
-$state = Get-BridgeContent -LocalPath $statePath -RelativePath $stateRel | ConvertFrom-Json
-$messageId = if ($state.message_id) { [string]$state.message_id } else { "unknown-message" }
-$nextStep = if ($state.next_step) { [string]$state.next_step } else { "Read the inbox and continue." }
+$promptArgs = @(
+  $renderScript,
+  "--repo-root", $RepoRoot,
+  "--inbox-path", $inboxPath,
+  "--state-path", $statePath,
+  "--outbox-path", $outboxPath,
+  "--inbox-rel", $inboxRel,
+  "--state-rel", $stateRel
+)
 
 if ($GitRef) {
-  $readBlock = @"
-Read from git ref ${GitRef}:
-- $inboxRel
-- $stateRel
-
-Acknowledge in repo bridge files:
-- $outboxPath
-- $statePath
-
-If your working tree is behind, inspect via git show ${GitRef}:<path> or fast-forward before acknowledging.
-"@
-} else {
-  $readBlock = @"
-Read:
-- $inboxPath
-- $statePath
-
-Acknowledge in:
-- $outboxPath
-- $statePath
-"@
+  $promptArgs += @("--git-ref", $GitRef)
 }
 
-$prompt = @"
-Use `$codex-host-handoff-loop.
-
-$readBlock
-
-Current message id: $messageId
-Immediate next step: $nextStep
-
-After acknowledging, continue the live bridge task from the inbox.
-"@
+$prompt = & node @promptArgs
 
 Set-Clipboard -Value $prompt
 

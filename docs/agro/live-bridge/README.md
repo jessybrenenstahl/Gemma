@@ -55,7 +55,19 @@ For more immediate coordination, keep the watcher script running on each side:
 
 That turns bridge ownership changes into direct composer prompts instead of relying on manual fetch/read/paste loops.
 
+For the full no-manual bridge, also keep the prompt-file watcher alive on each side:
+
+- Windows: `pwsh -ExecutionPolicy Bypass -File docs/agro/live-bridge/scripts/watch-prompts-from-mac-codex.ps1`
+- Mac: `bash docs/agro/live-bridge/scripts/watch-prompts-from-windows-codex.sh`
+
+Or use the one-shot starters:
+
+- Windows: `pwsh -ExecutionPolicy Bypass -File docs/agro/live-bridge/scripts/start-direct-codex-link-windows.ps1`
+- Mac: `bash docs/agro/live-bridge/scripts/start-direct-codex-link-mac.sh`
+
 To send a real message to the other lane, use the publisher script on your side:
 
 - Mac -> Windows: `bash docs/agro/live-bridge/scripts/publish-bridge-message-to-windows-codex.sh ...`
 - Windows -> Mac: `pwsh -ExecutionPolicy Bypass -File docs/agro/live-bridge/scripts/publish-bridge-message-to-mac-codex.ps1 ...`
+
+Publishers now also try to send the rendered handoff prompt directly into the peer Codex composer over Taildrop after the bridge commit lands. The repo branch remains the source of truth; the prompt-file transport is the immediate delivery path.

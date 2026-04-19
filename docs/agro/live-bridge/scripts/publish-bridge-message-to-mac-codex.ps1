@@ -8,6 +8,7 @@ param(
   [string]$NextStep,
   [string]$Status = "pending",
   [int]$MaxRetries = 5,
+  [switch]$NoDirectPrompt,
   [switch]$DryRun
 )
 
@@ -35,11 +36,14 @@ if (-not $Message) {
 
 $fromLane = "windows-codex"
 $toLane = "mac-codex"
+$macRepoRoot = "/Users/jessybrenenstahl/Documents/Sprint/Gemma"
 $timestamp = [DateTimeOffset]::Now.ToString("yyyy-MM-ddTHH:mm:sszzz")
 $messageId = "windows-{0}-{1}" -f ([DateTimeOffset]::Now.ToString("yyyyMMdd-HHmmss")), $PID
 $commitSha = (git -C $RepoRoot rev-parse --short HEAD).Trim()
 $senderBranch = (git -C $RepoRoot branch --show-current).Trim()
 $remoteRef = "$RemoteName/$BranchName"
+$renderScript = Join-Path $RepoRoot "docs\agro\live-bridge\scripts\render-bridge-prompt.mjs"
+$promptFileSender = Join-Path $RepoRoot "docs\agro\live-bridge\scripts\send-prompt-file-to-mac-codex.ps1"
 
 function Write-BridgeFiles {
   param(
@@ -107,6 +111,21 @@ function Remove-WorktreePath {
   }
 }
 
+function Send-DirectPrompt {
+  $prompt = & node $renderScript `
+    --repo-root $RepoRoot `
+    --git-ref $remoteRef `
+    --inbox-path "$macRepoRoot/docs/agro/live-bridge/bridge/inbox.md" `
+    --state-path "$macRepoRoot/docs/agro/live-bridge/bridge/state.json" `
+    --outbox-path "$macRepoRoot/docs/agro/live-bridge/bridge/outbox.md"
+
+  try {
+    & $promptFileSender -Text $prompt
+  } catch {
+    Write-Warning "Bridge message published, but direct prompt-file delivery to Mac Codex failed: $($_.Exception.Message)"
+  }
+}
+
 if ($DryRun) {
   git -C $RepoRoot fetch $RemoteName $BranchName *> $null
   $tempPath = Join-Path $env:TEMP ("agro-bridge-dryrun-" + [guid]::NewGuid().ToString("N"))
@@ -132,6 +151,10 @@ for ($attempt = 1; $attempt -le $MaxRetries; $attempt += 1) {
     git -C $tempPath add docs/agro/live-bridge/bridge/inbox.md docs/agro/live-bridge/bridge/state.json docs/agro/live-bridge/logs/events.log *> $null
     git -C $tempPath commit -m "Bridge message windows -> mac: $Subject" *> $null
     git -C $tempPath push $RemoteName HEAD:$BranchName *> $null
+    if (-not $NoDirectPrompt) {
+      git -C $RepoRoot fetch $RemoteName $BranchName *> $null
+      Send-DirectPrompt
+    }
     Write-Host "Published $messageId to $toLane on $BranchName."
     return
   } catch {

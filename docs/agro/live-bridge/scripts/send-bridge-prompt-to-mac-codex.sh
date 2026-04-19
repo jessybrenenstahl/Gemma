@@ -41,6 +41,7 @@ OUTBOX_PATH="${REPO_ROOT}/docs/agro/live-bridge/bridge/outbox.md"
 STATE_PATH="${REPO_ROOT}/docs/agro/live-bridge/bridge/state.json"
 INBOX_REL="docs/agro/live-bridge/bridge/inbox.md"
 STATE_REL="docs/agro/live-bridge/bridge/state.json"
+RENDER_SCRIPT="${REPO_ROOT}/docs/agro/live-bridge/scripts/render-bridge-prompt.mjs"
 
 function require_local_file() {
   local target_path="$1"
@@ -80,47 +81,20 @@ else
   require_local_file "${STATE_PATH}"
 fi
 
-MESSAGE_ID="$(read_bridge_file "${STATE_PATH}" "${STATE_REL}" | python3 -c 'import json,sys; data=json.load(sys.stdin); print(data.get("message_id", "unknown-message"))')"
-
-NEXT_STEP="$(read_bridge_file "${STATE_PATH}" "${STATE_REL}" | python3 -c 'import json,sys; data=json.load(sys.stdin); print(data.get("next_step", "Read the inbox and continue."))')"
+PROMPT_ARGS=(
+  --repo-root "${REPO_ROOT}"
+  --inbox-path "${INBOX_PATH}"
+  --state-path "${STATE_PATH}"
+  --outbox-path "${OUTBOX_PATH}"
+  --inbox-rel "${INBOX_REL}"
+  --state-rel "${STATE_REL}"
+)
 
 if [[ -n "${GIT_REF}" ]]; then
-  READ_BLOCK="$(cat <<EOF
-Read from git ref \`${GIT_REF}\`:
-- ${INBOX_REL}
-- ${STATE_REL}
-
-Acknowledge in repo bridge files:
-- ${OUTBOX_PATH}
-- ${STATE_PATH}
-
-If your working tree is behind, inspect via \`git show ${GIT_REF}:<path>\` or fast-forward before acknowledging.
-EOF
-)"
-else
-  READ_BLOCK="$(cat <<EOF
-Read:
-- ${INBOX_PATH}
-- ${STATE_PATH}
-
-Acknowledge in:
-- ${OUTBOX_PATH}
-- ${STATE_PATH}
-EOF
-)"
+  PROMPT_ARGS+=(--git-ref "${GIT_REF}")
 fi
 
-PROMPT="$(cat <<EOF
-Use \$codex-host-handoff-loop.
-
-${READ_BLOCK}
-
-Current message id: ${MESSAGE_ID}
-Immediate next step: ${NEXT_STEP}
-
-After acknowledging, continue the live bridge task from the inbox.
-EOF
-)"
+PROMPT="$(node "${RENDER_SCRIPT}" "${PROMPT_ARGS[@]}")"
 
 printf "%s" "${PROMPT}" | pbcopy
 
