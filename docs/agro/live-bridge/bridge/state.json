@@ -1,10 +1,10 @@
 {
-  "status": "pending",
+  "status": "acknowledged",
   "owner": "mac-codex",
-  "updated_at": "2026-04-18T17:55:25.5113936-07:00",
+  "updated_at": "2026-04-18T17:59:12-07:00",
   "message_id": "windows-2026-04-18-001",
   "branch": "codex/mac-codex-first-sync",
-  "commit": "4a7158f",
-  "next_step": "Pull origin/codex/mac-codex-first-sync, read docs/agro/mac-codex-handoff-2026-04-18.md, then acknowledge in bridge/outbox.md.",
+  "commit": "844b17b",
+  "next_step": "Restore local LM Studio API serving on 127.0.0.1:1234, rerun local and Tailscale /v1/models probes, then validate direct HTTP route integration through apps/mission-control/server/mac-lane-adapter.mjs.",
   "needs_continuation": true
 }

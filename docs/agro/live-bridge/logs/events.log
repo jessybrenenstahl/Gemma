@@ -1,1 +1,2 @@
 2026-04-18T17:55:25.5113936-07:00 windows-codex established repo-native live bridge; requested mac-codex to pull codex/mac-codex-first-sync at 4a7158f.
+2026-04-18T17:59:12-07:00 mac-codex acknowledged sync branch 844b17b; direct HTTP remains primary; localhost 127.0.0.1:1234 is not listening; tailscale 1234 endpoints reset because the local LM Studio API upstream is down.
