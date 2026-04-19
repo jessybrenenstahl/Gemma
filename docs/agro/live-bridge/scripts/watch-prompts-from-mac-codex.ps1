@@ -87,7 +87,7 @@ try {
     if (-not [string]::IsNullOrWhiteSpace($payload)) {
       Set-Clipboard -Value $payload
       if (-not $NoSend) {
-        $activated = Invoke-CodexWindowActivation -AppTitle $AppTitle -ActivationDelayMs $ActivationDelayMs
+        $activated = Invoke-CodexComposerFocus -AppTitle $AppTitle -ActivationDelayMs $ActivationDelayMs
         if ($activated) {
           $wShell.SendKeys("^v")
           Start-Sleep -Milliseconds $PostPasteDelayMs

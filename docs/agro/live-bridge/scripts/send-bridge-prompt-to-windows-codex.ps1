@@ -70,7 +70,7 @@ if ($ClipboardOnly) {
 }
 
 $wShell = New-Object -ComObject WScript.Shell
-$activated = Invoke-CodexWindowActivation -AppTitle $AppTitle -ActivationDelayMs $ActivationDelayMs
+$activated = Invoke-CodexComposerFocus -AppTitle $AppTitle -ActivationDelayMs $ActivationDelayMs
 if (-not $activated) {
   throw "Could not activate the Codex app window using title '$AppTitle'."
 }
