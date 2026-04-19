@@ -68,6 +68,9 @@ test("send-mac route creates a session, emits transcript events, and records ver
     assert.equal(data.session.transcript.length, 4);
     assert.equal(data.session.derived.transcript_counts.shared, 1);
     assert.equal(data.session.derived.transcript_counts.mac, 3);
+    assert.match(data.mac_result.content, /Mac accepted: Implement session manager endpoints\./);
+    assert.equal(data.mac_result.event_type, "agent_reply");
+    assert.equal(data.mac_result.metrics.tokens_out, 32);
     assert.equal(data.mac_result.verified, true);
   });
 });
@@ -148,6 +151,7 @@ test("send-mac route records failed Mac verification as an active error gap with
     const data = await response.json();
     assert.equal(response.status, 200);
     assert.equal(data.ok, true);
+    assert.equal(data.mac_result.content, "Mac applied the AGRO mission-control patch.");
     assert.equal(data.mac_result.verified, false);
     assert.equal(data.mac_result.verification_status, "failed");
     assert.equal(data.mac_result.verification_source, "tool");
@@ -219,6 +223,7 @@ test("send-mac route creates a pending operator confirmation gate and blocks lat
     const initialData = await initialResponse.json();
     assert.equal(initialResponse.status, 200);
     assert.equal(initialData.ok, true);
+    assert.match(initialData.mac_result.content, /Mac wants approval before continuing/);
     assert.equal(initialData.mac_result.confirmation_required, true);
     assert.equal(initialData.mac_result.confirmation_category, "destructive_filesystem");
     assert.equal(initialData.session.mac_state.confirmation_gate.status, "pending");
@@ -261,6 +266,7 @@ test("send-mac route creates a pending operator confirmation gate and blocks lat
     const approvedData = await approvedResponse.json();
     assert.equal(approvedResponse.status, 200);
     assert.equal(approvedData.ok, true);
+    assert.match(approvedData.mac_result.content, /Mac continued safely after approval/);
     assert.equal(approvedData.mac_result.confirmation_required, false);
     assert.equal(approvedData.session.mac_state.confirmation_gate.status, "clear");
     assert.equal(approvedData.session.mac_state.last_verified_result.verification_type, "tool");

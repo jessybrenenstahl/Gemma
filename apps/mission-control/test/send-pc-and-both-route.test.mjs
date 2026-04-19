@@ -63,6 +63,8 @@ test("send-pc route creates a reviewer task and captures critique output", async
     assert.equal(data.session.pc_state.status, "reviewing");
     assert.equal(data.session.derived.transcript_counts.shared, 1);
     assert.equal(data.session.derived.transcript_counts.pc, 2);
+    assert.match(data.pc_result.content, /PC critique accepted: Review the AGRO lane-state reducer plan\./);
+    assert.equal(data.pc_result.event_type, "critique");
     assert.equal(data.pc_result.verified, false);
   });
 });
@@ -129,6 +131,8 @@ test("send-both route dispatches aligned Mac and PC tasks and captures both repl
     assert.equal(data.session.derived.transcript_counts.shared, 2);
     assert.equal(data.session.derived.transcript_counts.mac, 3);
     assert.equal(data.session.derived.transcript_counts.pc, 2);
+    assert.match(data.mac_result.content, /Mac path: Plan the first AGRO mission-control reducer slice\./);
+    assert.match(data.pc_result.content, /PC path: Plan the first AGRO mission-control reducer slice\./);
     assert.equal(data.mac_result.verified, true);
     assert.equal(data.pc_result.verified, false);
   });
@@ -171,6 +175,7 @@ test("send-both route records partial failure without losing the successful lane
     const data = await response.json();
     assert.equal(response.status, 502);
     assert.equal(data.ok, false);
+    assert.match(data.mac_result.content, /Mac succeeded: Run both AGRO lanes on the same planning prompt\./);
     assert.equal(data.mac_result.verified, false);
     assert.equal(data.pc_result, null);
     assert.equal(data.session.pc_state.latest_error_gap.severity, "high");
@@ -235,6 +240,8 @@ test("send-both route promotes strong PC critique into shared risk while keeping
     const data = await response.json();
     assert.equal(response.status, 200);
     assert.equal(data.ok, true);
+    assert.match(data.mac_result.content, /Mac executed: Run Mac execution and PC critique on the same reducer change\./);
+    assert.match(data.pc_result.content, /rollback path is missing/i);
     assert.equal(data.mac_result.verified, true);
     assert.equal(data.pc_result.promoted_shared_risk, true);
     assert.equal(data.arbitration.arbitration_state, "operator_decision");

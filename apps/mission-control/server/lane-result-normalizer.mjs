@@ -89,9 +89,19 @@ function extractMetrics(raw) {
   const usage = raw.usage || raw.response?.usage || {};
   const metrics = raw.metrics || raw.proxyMetrics || {};
   return {
-    latency_ms: Number(metrics.latency_ms || metrics.elapsedMs || raw.elapsed_ms || raw.elapsedMs || 0),
-    tokens_in: Number(usage.prompt_tokens || raw.tokens_in || 0),
-    tokens_out: Number(usage.completion_tokens || raw.tokens_out || 0),
+    latency_ms: Number(
+      metrics.latency_ms ?? metrics.elapsedMs ?? raw.elapsed_ms ?? raw.elapsedMs ?? 0
+    ),
+    tokens_in: Number(
+      usage.prompt_tokens ?? metrics.tokens_in ?? metrics.prompt_tokens ?? raw.tokens_in ?? 0
+    ),
+    tokens_out: Number(
+      usage.completion_tokens ??
+        metrics.tokens_out ??
+        metrics.completion_tokens ??
+        raw.tokens_out ??
+        0
+    ),
   };
 }
 

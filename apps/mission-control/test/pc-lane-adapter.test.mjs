@@ -1,7 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-import { createMissionControlApp, PcLaneAdapter } from "../server/index.mjs";
+import { createMissionControlApp, FileBackedLaneConfigStore, PcLaneAdapter } from "../server/index.mjs";
 
 function createJsonResponse(body, { status = 200 } = {}) {
   return {
@@ -28,6 +30,8 @@ function createFetchStub(handler) {
   stub.calls = calls;
   return stub;
 }
+
+const REPO_ROOT = path.resolve(fileURLToPath(new URL("../../../", import.meta.url)));
 
 function makeClock() {
   let tick = 0;
@@ -168,6 +172,11 @@ test("send-pc route records reviewer traces and returns critique metadata withou
   );
 
   const app = createMissionControlApp({
+    laneConfigStore: (() => {
+      const store = new FileBackedLaneConfigStore({ filePath: null });
+      store.updateConfig({ pcRepoPath: REPO_ROOT });
+      return store;
+    })(),
     pcExecutor: new PcLaneAdapter({
       endpoint: "http://127.0.0.1:1234",
       model: "gemma4-26b-128k",
@@ -191,6 +200,9 @@ test("send-pc route records reviewer traces and returns critique metadata withou
     const data = await response.json();
     assert.equal(response.status, 200);
     assert.equal(data.ok, true);
+    assert.equal(data.pc_result.content, "The route plan is missing a verification handoff.");
+    assert.equal(data.pc_result.event_type, "critique");
+    assert.equal(data.pc_result.metrics.tokens_out, 0);
     assert.equal(data.pc_result.verified, false);
     assert.equal(data.pc_result.review_mode, "critique");
     assert.equal(data.pc_result.dissent, true);
