@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-04-20T04:50:29.532Z",
+  "updated_at": "2026-04-20T04:51:07.196Z",
   "last_delivered_to_mac": {
     "message_id": "test-wc-to-mc-receipt",
     "source_lane": "windows-codex",
@@ -16,9 +16,9 @@
     "source_lane": "mac-codex",
     "target_lane": "windows-codex",
     "delivery_status": "delivered",
-    "prompt_file": "codex-prompt-from-mac-codex-20260419-214825.md",
+    "prompt_file": "codex-prompt-from-mac-codex-20260419-214825 (3).md",
     "notes": "",
-    "delivered_at": "2026-04-20T04:50:29.532Z",
+    "delivered_at": "2026-04-20T04:51:07.196Z",
     "recorded_from_commit": "000bfef",
     "recorded_from_branch": "codex/mac-codex-first-sync"
   },
@@ -52,9 +52,9 @@
       "source_lane": "mac-codex",
       "target_lane": "windows-codex",
       "delivery_status": "delivered",
-      "prompt_file": "codex-prompt-from-mac-codex-20260419-214825.md",
+      "prompt_file": "codex-prompt-from-mac-codex-20260419-214825 (3).md",
       "notes": "",
-      "delivered_at": "2026-04-20T04:50:29.532Z",
+      "delivered_at": "2026-04-20T04:51:07.196Z",
       "recorded_from_commit": "000bfef",
       "recorded_from_branch": "codex/mac-codex-first-sync"
     }
