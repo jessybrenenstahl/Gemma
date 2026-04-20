@@ -33,6 +33,18 @@ function buildFetchStub(routes) {
 test("resolveMacModel prefers explicit model and otherwise falls back to models payload", () => {
   assert.equal(resolveMacModel({ data: [{ id: "fallback-model" }] }, "preferred-model"), "preferred-model")
   assert.equal(resolveMacModel({ data: [{ id: "fallback-model" }] }, ""), "fallback-model")
+  assert.equal(
+    resolveMacModel(
+      {
+        data: [
+          { id: "gemma-4-31b-it-uncensored-heretic" },
+          { id: "google/gemma-4-26b-a4b" },
+        ],
+      },
+      ""
+    ),
+    "google/gemma-4-26b-a4b"
+  )
   assert.equal(resolveMacModel({}, ""), "")
 })
 

@@ -8,6 +8,11 @@ const DEFAULT_MAC_ENDPOINT = "http://127.0.0.1:1234"
 const DEFAULT_TIMEOUT_MS = 20_000
 const DEFAULT_COMPARE_PROBE_PROMPT =
   "Return exactly READY if your lane is currently routable for this request. Otherwise return BLOCKED."
+const PREFERRED_MAC_MODELS = [
+  "google/gemma-4-26b-a4b",
+  "gemma-4-26b-a4b",
+  "gemma-4-31b-it",
+]
 
 function trimTrailingSlash(value) {
   return String(value || "").replace(/\/+$/, "")
@@ -54,6 +59,17 @@ export function resolveMacModel(payload, fallbackModel = "") {
     : Array.isArray(payload.models)
       ? payload.models
       : []
+
+  const normalizedCandidates = candidates
+    .map((candidate) => String(candidate?.id || candidate?.model || "").trim())
+    .filter(Boolean)
+
+  for (const preferredId of PREFERRED_MAC_MODELS) {
+    const matched = normalizedCandidates.find((candidateId) => candidateId === preferredId)
+    if (matched) {
+      return matched
+    }
+  }
 
   for (const candidate of candidates) {
     const modelId = String(candidate?.id || candidate?.model || "").trim()

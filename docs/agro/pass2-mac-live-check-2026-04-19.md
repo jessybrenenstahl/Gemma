@@ -40,6 +40,24 @@ Live from this Codex session:
   - `node apps/mission-control/check-live-mac.mjs --text --transport curl`
   - this bypasses Node `fetch` and gives a clean connection result from `curl`
 
+Current recovered state:
+
+- `lms server start`
+  - result: LM Studio server is running on `127.0.0.1:1234`
+- `AGRO_MAC_ENDPOINT=http://127.0.0.1:1234 AGRO_MAC_MODEL=google/gemma-4-26b-a4b AGRO_MAC_TRANSPORT=openai_chat node apps/mission-control/server/start.mjs`
+  - result: mission-control is listening on `127.0.0.1:3040`
+- `AGRO_MAC_MODEL=google/gemma-4-26b-a4b node apps/mission-control/check-live-mac.mjs --text --transport curl`
+  - result:
+    - `mission-control-status` OK
+    - `mac-models` OK
+    - `mac-chat` OK
+    - `send-mac-route` OK
+
+Important follow-up fix:
+
+- model resolution now prefers the intended Mac lane contract instead of blindly taking the first item from `/v1/models`
+- preferred order now starts with `google/gemma-4-26b-a4b`
+
 Local listener/process evidence from the same session:
 
 - nothing listening on `127.0.0.1:3040`
@@ -61,3 +79,4 @@ Local listener/process evidence from the same session:
 - pull this pass once sync is available
 - keep Windows ownership of `start-live.ps1`, `check-live.ps1`, and `recover-dual-live.ps1`
 - treat `check-live-mac.mjs` as the Mac-side proof companion, not a replacement for the Windows transport diagnostics
+- with MC local services green again, rerun the Windows live route validation path
