@@ -8,6 +8,8 @@ REPO_ROOT="/Users/jessybrenenstahl/Documents/Sprint/Gemma"
 BRIDGE_ROOT="${HOME}/codex-composer-bridge"
 INBOX_DIR="${BRIDGE_ROOT}/inbox"
 PROCESSED_DIR="${BRIDGE_ROOT}/processed"
+RUNTIME_DIR="${HOME}/Library/Application Support/agro-live-bridge"
+SEEN_FILE="${RUNTIME_DIR}/watch-prompts-from-windows-codex.seen"
 REMOTE_NAME="origin"
 BRANCH_NAME="codex/mac-codex-first-sync"
 REMOTE_REF="${REMOTE_NAME}/${BRANCH_NAME}"
@@ -22,6 +24,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --repo-root)
       REPO_ROOT="$2"
+      shift 2
+      ;;
+    --seen-file)
+      SEEN_FILE="$2"
       shift 2
       ;;
     --no-send)
@@ -40,6 +46,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 mkdir -p "${INBOX_DIR}" "${PROCESSED_DIR}"
+mkdir -p "${RUNTIME_DIR}"
 
 echo "Watching for Windows Codex prompt files in ${INBOX_DIR}"
 tailscale file get --loop --conflict=rename "${INBOX_DIR}" &
@@ -54,7 +61,7 @@ trap cleanup EXIT INT TERM
 function extract_message_id() {
   local file_path="$1"
   python3 - "${file_path}" <<'PY'
-import pathlib, re, sys
+import hashlib, pathlib, re, sys
 text = pathlib.Path(sys.argv[1]).read_text(encoding="utf8")
 patterns = [
     r"(?m)^Current message id:\s*(.+)\s*$",
@@ -66,7 +73,16 @@ for pattern in patterns:
     if match:
         print(match.group(1).strip().strip("`"))
         raise SystemExit(0)
-print(pathlib.Path(sys.argv[1]).stem)
+body = text
+if text.startswith("<!-- codex-bridge"):
+    end = text.find("-->")
+    if end != -1:
+        body = text[end + 3 :].lstrip("\r\n")
+normalized = re.sub(r"\s+", " ", body).strip()
+if normalized:
+    print("legacy-" + hashlib.sha256(normalized.encode("utf8")).hexdigest()[:16])
+else:
+    print(pathlib.Path(sys.argv[1]).stem)
 PY
 }
 
@@ -122,6 +138,35 @@ function receipt_already_recorded() {
     --require-non-retryable >/dev/null 2>&1
 }
 
+function seen_message_id() {
+  local message_id="$1"
+
+  if [[ -z "${message_id}" || ! -f "${SEEN_FILE}" ]]; then
+    return 1
+  fi
+
+  grep -Fxq "${message_id}" "${SEEN_FILE}"
+}
+
+function record_seen_message() {
+  local message_id="$1"
+
+  if [[ -z "${message_id}" ]]; then
+    return 0
+  fi
+
+  touch "${SEEN_FILE}"
+  if grep -Fxq "${message_id}" "${SEEN_FILE}"; then
+    return 0
+  fi
+
+  {
+    printf "%s\n" "${message_id}"
+    tail -n 199 "${SEEN_FILE}" 2>/dev/null || true
+  } | awk '!seen[$0]++' > "${SEEN_FILE}.tmp"
+  mv "${SEEN_FILE}.tmp" "${SEEN_FILE}"
+}
+
 function mark_stale_files() {
   local newest_file="$1"
   local newest_message_id="$2"
@@ -141,6 +186,17 @@ function mark_stale_files() {
   done < <(find "${INBOX_DIR}" -maxdepth 1 -type f -name 'codex-prompt-from-*.md' | sort)
 }
 
+function bootstrap_seen_from_processed() {
+  local candidate=""
+
+  while IFS= read -r candidate; do
+    [[ -z "${candidate}" ]] && continue
+    record_seen_message "$(extract_message_id "${candidate}")"
+  done < <(find "${PROCESSED_DIR}" -maxdepth 1 -type f -name 'codex-prompt-from-*.md' | sort | tail -n 200)
+}
+
+bootstrap_seen_from_processed
+
 while true; do
   NEXT_FILE="$(find "${INBOX_DIR}" -maxdepth 1 -type f -name 'codex-prompt-from-*.md' | sort | tail -n 1)"
 
@@ -158,6 +214,17 @@ while true; do
     mv "${NEXT_FILE}" "${PROCESSED_DIR}/"
     echo "Skipped duplicate prompt ${PROMPT_FILE_NAME}."
     record_delivery "${MESSAGE_ID}" "duplicate_skipped" "${PROMPT_FILE_NAME}" "already_recorded"
+    record_seen_message "${MESSAGE_ID}"
+    if [[ "${ONCE}" -eq 1 ]]; then
+      break
+    fi
+    continue
+  fi
+
+  if seen_message_id "${MESSAGE_ID}"; then
+    mv "${NEXT_FILE}" "${PROCESSED_DIR}/"
+    echo "Skipped locally seen prompt ${PROMPT_FILE_NAME}."
+    record_delivery "${MESSAGE_ID}" "duplicate_skipped" "${PROMPT_FILE_NAME}" "local_seen_cache"
     if [[ "${ONCE}" -eq 1 ]]; then
       break
     fi
@@ -181,6 +248,7 @@ EOF
       then
         DELIVERY_STATUS="delivered"
         echo "Delivered ${PROMPT_FILE_NAME} into the Mac Codex composer."
+        record_seen_message "${MESSAGE_ID}"
       else
         DELIVERY_STATUS="activation_failed"
         echo "Warning: could not activate ${APP_NAME}. Prompt left in clipboard from ${PROMPT_FILE_NAME}." >&2
@@ -188,10 +256,14 @@ EOF
     else
       DELIVERY_STATUS="clipboard_only"
       echo "Loaded ${PROMPT_FILE_NAME} into the Mac clipboard only."
+      record_seen_message "${MESSAGE_ID}"
     fi
   fi
 
   mv "${NEXT_FILE}" "${PROCESSED_DIR}/"
+  if [[ "${DELIVERY_STATUS:-empty}" != "activation_failed" ]]; then
+    record_seen_message "${MESSAGE_ID}"
+  fi
   record_delivery "${MESSAGE_ID}" "${DELIVERY_STATUS:-empty}" "${PROMPT_FILE_NAME}" ""
   if [[ "${ONCE}" -eq 1 ]]; then
     break

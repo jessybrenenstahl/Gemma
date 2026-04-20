@@ -4,6 +4,7 @@ param(
   [string]$ProcessedDir = $(Join-Path $env:USERPROFILE "codex-composer-bridge\processed"),
   [string]$DeferredDir = $(Join-Path $env:USERPROFILE "codex-composer-bridge\deferred"),
   [string]$AppTitle = "Codex",
+  [string]$SeenFile = $(Join-Path $env:LOCALAPPDATA "agro-live-bridge\watch-prompts-from-mac-codex.seen"),
   [int]$ActivationDelayMs = 700,
   [int]$PostPasteDelayMs = 200,
   [switch]$NoSend,
@@ -45,6 +46,20 @@ function Get-MessageId {
     $match = [regex]::Match($Payload, $pattern)
     if ($match.Success) {
       return $match.Groups[1].Value.Trim().Trim('`')
+    }
+  }
+
+  $promptBody = Get-PromptBody -Payload $Payload
+  $normalized = [regex]::Replace([string]$promptBody, '\s+', ' ').Trim()
+  if ($normalized) {
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    try {
+      $bytes = [System.Text.Encoding]::UTF8.GetBytes($normalized)
+      $hash = $sha.ComputeHash($bytes)
+      $hex = -join ($hash | ForEach-Object { $_.ToString("x2") })
+      return "legacy-$($hex.Substring(0,16))"
+    } finally {
+      $sha.Dispose()
     }
   }
 
@@ -90,6 +105,39 @@ function Record-Delivery {
   }
 }
 
+function Test-SeenMessageId {
+  param([string]$MessageId)
+
+  if ([string]::IsNullOrWhiteSpace($MessageId) -or -not (Test-Path -LiteralPath $SeenFile)) {
+    return $false
+  }
+
+  return @(
+    Get-Content -LiteralPath $SeenFile -ErrorAction SilentlyContinue
+  ) -contains $MessageId
+}
+
+function Add-SeenMessageId {
+  param([string]$MessageId)
+
+  if ([string]::IsNullOrWhiteSpace($MessageId)) {
+    return
+  }
+
+  $seenDir = Split-Path -Parent $SeenFile
+  if ($seenDir -and -not (Test-Path -LiteralPath $seenDir)) {
+    New-Item -ItemType Directory -Path $seenDir -Force | Out-Null
+  }
+
+  $existing = @()
+  if (Test-Path -LiteralPath $SeenFile) {
+    $existing = @(Get-Content -LiteralPath $SeenFile -ErrorAction SilentlyContinue)
+  }
+
+  $updated = @($MessageId) + @($existing | Where-Object { $_ -and $_ -ne $MessageId } | Select-Object -First 199)
+  Set-Content -LiteralPath $SeenFile -Value $updated
+}
+
 function Test-ReceiptAlreadyRecorded {
   param([string]$MessageId)
 
@@ -130,6 +178,19 @@ function Skip-StaleFiles {
   }
 }
 
+function Initialize-SeenFromProcessed {
+  $processedFiles = @(Get-ChildItem -LiteralPath $ProcessedDir -File -Filter "codex-prompt-from-*.md" -ErrorAction SilentlyContinue |
+    Sort-Object LastWriteTime |
+    Select-Object -Last 200)
+
+  foreach ($processedFile in $processedFiles) {
+    $processedPayload = Get-Content -LiteralPath $processedFile.FullName -Raw
+    Add-SeenMessageId -MessageId (Get-MessageId -Payload $processedPayload)
+  }
+}
+
+Initialize-SeenFromProcessed
+
 try {
   while ($true) {
     $nextFile = @(
@@ -152,7 +213,18 @@ try {
     if (Test-ReceiptAlreadyRecorded -MessageId $messageId) {
       Move-Item -LiteralPath $nextFile.FullName -Destination (Join-Path $ProcessedDir $nextFile.Name) -Force
       Record-Delivery -MessageId $messageId -DeliveryStatus "duplicate_skipped" -PromptFile $nextFile.Name -Notes "already_recorded"
+      Add-SeenMessageId -MessageId $messageId
       Write-Host "Skipped duplicate prompt $($nextFile.Name)."
+      if ($Once) {
+        break
+      }
+      continue
+    }
+
+    if (Test-SeenMessageId -MessageId $messageId) {
+      Move-Item -LiteralPath $nextFile.FullName -Destination (Join-Path $ProcessedDir $nextFile.Name) -Force
+      Record-Delivery -MessageId $messageId -DeliveryStatus "duplicate_skipped" -PromptFile $nextFile.Name -Notes "local_seen_cache"
+      Write-Host "Skipped locally seen prompt $($nextFile.Name)."
       if ($Once) {
         break
       }
@@ -171,6 +243,7 @@ try {
           Start-Sleep -Milliseconds 120
           $wShell.SendKeys("{ENTER}")
           $deliveryStatus = "delivered"
+          Add-SeenMessageId -MessageId $messageId
           Write-Host "Delivered $($nextFile.Name) into the Windows Codex composer."
           Move-Item -LiteralPath $nextFile.FullName -Destination (Join-Path $ProcessedDir $nextFile.Name) -Force
         } else {
@@ -183,6 +256,7 @@ try {
         }
       } else {
         $deliveryStatus = "clipboard_only"
+        Add-SeenMessageId -MessageId $messageId
         Write-Host "Loaded $($nextFile.Name) into the Windows clipboard only."
         Move-Item -LiteralPath $nextFile.FullName -Destination (Join-Path $ProcessedDir $nextFile.Name) -Force
       }
@@ -190,6 +264,9 @@ try {
 
     if (-not $deliveryStatus) {
       $deliveryStatus = "empty"
+    }
+    if ($deliveryStatus -ne "activation_failed") {
+      Add-SeenMessageId -MessageId $messageId
     }
     Record-Delivery -MessageId $messageId -DeliveryStatus $deliveryStatus -PromptFile $nextFile.Name
     if ($Once) {

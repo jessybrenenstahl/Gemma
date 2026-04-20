@@ -68,7 +68,9 @@ Ensure-Running `
     "-ExecutionPolicy", "Bypass",
     "-File", (Join-Path $RepoRoot "docs\agro\live-bridge\scripts\watch-live-bridge-windows.ps1"),
     "-RepoRoot", $RepoRoot,
-    "-AppTitle", $AppTitle
+    "-AppTitle", $AppTitle,
+    "-CacheFile", (Join-Path $RuntimeDir "agro-live-bridge-windows.last"),
+    "-SeenFile", (Join-Path $RuntimeDir "watch-live-bridge-windows.seen")
   )
 
 Ensure-Running `
@@ -78,5 +80,6 @@ Ensure-Running `
     "-ExecutionPolicy", "Bypass",
     "-File", (Join-Path $RepoRoot "docs\agro\live-bridge\scripts\watch-prompts-from-mac-codex.ps1"),
     "-RepoRoot", $RepoRoot,
-    "-AppTitle", $AppTitle
+    "-AppTitle", $AppTitle,
+    "-SeenFile", (Join-Path $RuntimeDir "watch-prompts-from-mac-codex.seen")
   )

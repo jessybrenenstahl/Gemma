@@ -6,6 +6,7 @@ param(
   [string]$AppTitle = "Codex",
   [int]$IntervalSeconds = 10,
   [string]$CacheFile = "",
+  [string]$SeenFile = "",
   [switch]$Once,
   [switch]$Force,
   [switch]$PrintOnly,
@@ -15,7 +16,11 @@ param(
 $ErrorActionPreference = "Stop"
 
 if (-not $CacheFile) {
-  $CacheFile = Join-Path $env:TEMP "agro-live-bridge-$Owner.last"
+  $CacheFile = Join-Path $env:LOCALAPPDATA "agro-live-bridge\agro-live-bridge-$Owner.last"
+}
+
+if (-not $SeenFile) {
+  $SeenFile = Join-Path $env:LOCALAPPDATA "agro-live-bridge\watch-live-bridge-$Owner.seen"
 }
 
 $remoteRef = "$RemoteName/$BranchName"
@@ -64,6 +69,39 @@ function Test-ReceiptAlreadyRecorded {
   return $LASTEXITCODE -eq 0
 }
 
+function Test-SeenMessageId {
+  param([string]$MessageId)
+
+  if ([string]::IsNullOrWhiteSpace($MessageId) -or -not (Test-Path -LiteralPath $SeenFile)) {
+    return $false
+  }
+
+  return @(
+    Get-Content -LiteralPath $SeenFile -ErrorAction SilentlyContinue
+  ) -contains $MessageId
+}
+
+function Add-SeenMessageId {
+  param([string]$MessageId)
+
+  if ([string]::IsNullOrWhiteSpace($MessageId)) {
+    return
+  }
+
+  $seenDir = Split-Path -Parent $SeenFile
+  if ($seenDir -and -not (Test-Path -LiteralPath $seenDir)) {
+    New-Item -ItemType Directory -Path $seenDir -Force | Out-Null
+  }
+
+  $existing = @()
+  if (Test-Path -LiteralPath $SeenFile) {
+    $existing = @(Get-Content -LiteralPath $SeenFile -ErrorAction SilentlyContinue)
+  }
+
+  $updated = @($MessageId) + @($existing | Where-Object { $_ -and $_ -ne $MessageId } | Select-Object -First 199)
+  Set-Content -LiteralPath $SeenFile -Value $updated
+}
+
 function Should-Dispatch {
   param(
     [string]$CurrentOwner,
@@ -84,6 +122,10 @@ function Should-Dispatch {
     if ($cachedToken -eq $CurrentToken) {
       return $false
     }
+  }
+
+  if (Test-SeenMessageId -MessageId $MessageId) {
+    return $false
   }
 
   if (Test-ReceiptAlreadyRecorded -MessageId $MessageId) {
@@ -125,6 +167,7 @@ while ($true) {
         New-Item -ItemType Directory -Path $cacheDir -Force | Out-Null
       }
       Set-Content -LiteralPath $CacheFile -Value $token -NoNewline
+      Add-SeenMessageId -MessageId ([string]$state.message_id)
     } catch {
       Write-Warning "Bridge dispatch failed for $($state.message_id): $($_.Exception.Message)"
     }

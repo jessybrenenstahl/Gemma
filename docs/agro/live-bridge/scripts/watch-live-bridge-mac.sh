@@ -11,7 +11,9 @@ ONCE=0
 FORCE=0
 PRINT_ONLY=0
 CLIPBOARD_ONLY=0
-CACHE_FILE="${TMPDIR:-/tmp}/agro-live-bridge-${OWNER}.last"
+RUNTIME_DIR="${HOME}/Library/Application Support/agro-live-bridge"
+CACHE_FILE="${RUNTIME_DIR}/agro-live-bridge-${OWNER}.last"
+SEEN_FILE="${RUNTIME_DIR}/watch-live-bridge-${OWNER}.seen"
 STATE_REL="docs/agro/live-bridge/bridge/state.json"
 SENDER_SCRIPT="docs/agro/live-bridge/scripts/send-bridge-prompt-to-mac-codex.sh"
 RECEIPT_QUERY_SCRIPT="docs/agro/live-bridge/scripts/query-direct-link-receipt.mjs"
@@ -45,6 +47,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --cache-file)
       CACHE_FILE="$2"
+      shift 2
+      ;;
+    --seen-file)
+      SEEN_FILE="$2"
       shift 2
       ;;
     --once)
@@ -127,6 +133,36 @@ function receipt_already_recorded() {
     --require-non-retryable >/dev/null 2>&1
 }
 
+function seen_message_id() {
+  local message_id="$1"
+
+  if [[ -z "${message_id}" || ! -f "${SEEN_FILE}" ]]; then
+    return 1
+  fi
+
+  grep -Fxq "${message_id}" "${SEEN_FILE}"
+}
+
+function record_seen_message() {
+  local message_id="$1"
+
+  if [[ -z "${message_id}" ]]; then
+    return 0
+  fi
+
+  mkdir -p "$(dirname "${SEEN_FILE}")"
+  touch "${SEEN_FILE}"
+  if grep -Fxq "${message_id}" "${SEEN_FILE}"; then
+    return 0
+  fi
+
+  {
+    printf "%s\n" "${message_id}"
+    tail -n 199 "${SEEN_FILE}" 2>/dev/null || true
+  } | awk '!seen[$0]++' > "${SEEN_FILE}.tmp"
+  mv "${SEEN_FILE}.tmp" "${SEEN_FILE}"
+}
+
 function should_dispatch() {
   local owner_value="$1"
   local token_value="$2"
@@ -146,6 +182,10 @@ function should_dispatch() {
   fi
 
   if [[ "${token_value}" == "${cached_value}" ]]; then
+    return 1
+  fi
+
+  if seen_message_id "${message_id}"; then
     return 1
   fi
 
@@ -182,9 +222,11 @@ while true; do
   message_id="$(message_id_value)"
 
   if should_dispatch "${owner_value}" "${token}" "${message_id}"; then
-    mkdir -p "$(dirname "${CACHE_FILE}")"
-    printf "%s" "${token}" > "${CACHE_FILE}"
-    dispatch_prompt
+    if dispatch_prompt; then
+      mkdir -p "$(dirname "${CACHE_FILE}")"
+      printf "%s" "${token}" > "${CACHE_FILE}"
+      record_seen_message "${message_id}"
+    fi
   else
     echo "No new bridge task for ${OWNER} on ${REMOTE_REF}."
   fi

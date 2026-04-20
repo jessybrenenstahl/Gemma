@@ -214,7 +214,8 @@ function writeBridgeArtifacts(worktreePath, options) {
     previous &&
     previous.message_id === record.message_id &&
     previous.delivery_status === record.delivery_status &&
-    previous.prompt_file === record.prompt_file &&
+    previous.source_lane === record.source_lane &&
+    previous.target_lane === record.target_lane &&
     previous.notes === record.notes;
 
   if (unchanged) {
