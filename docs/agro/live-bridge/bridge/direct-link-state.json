@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-04-20T04:40:33.537Z",
+  "updated_at": "2026-04-20T04:45:05.592Z",
   "last_delivered_to_mac": {
     "message_id": "test-wc-to-mc-receipt",
     "source_lane": "windows-codex",
@@ -12,13 +12,13 @@
     "recorded_from_branch": "codex/mac-codex-direct-link"
   },
   "last_delivered_to_windows": {
-    "message_id": "mac-20260419-204739-10295",
+    "message_id": "mac-20260419-214439-15139",
     "source_lane": "mac-codex",
     "target_lane": "windows-codex",
     "delivery_status": "app_delivered_unconfirmed",
     "prompt_file": "repo-bridge",
     "notes": "repo_watcher_path",
-    "delivered_at": "2026-04-20T03:47:50.262Z",
+    "delivered_at": "2026-04-20T04:45:05.592Z",
     "recorded_from_commit": "000bfef",
     "recorded_from_branch": "codex/mac-codex-first-sync"
   },
@@ -35,5 +35,17 @@
       "recorded_from_branch": "codex/mac-codex-direct-link"
     }
   },
-  "receipts_to_windows": {}
+  "receipts_to_windows": {
+    "mac-20260419-214439-15139": {
+      "message_id": "mac-20260419-214439-15139",
+      "source_lane": "mac-codex",
+      "target_lane": "windows-codex",
+      "delivery_status": "app_delivered_unconfirmed",
+      "prompt_file": "repo-bridge",
+      "notes": "repo_watcher_path",
+      "delivered_at": "2026-04-20T04:45:05.592Z",
+      "recorded_from_commit": "000bfef",
+      "recorded_from_branch": "codex/mac-codex-first-sync"
+    }
+  }
 }
