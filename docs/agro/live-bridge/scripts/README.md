@@ -188,6 +188,27 @@ Run on Windows:
 pwsh -ExecutionPolicy Bypass -File docs/agro/live-bridge/scripts/send-prompt-file-to-mac-codex.ps1 -Text "your prompt here"
 ```
 
+## Edge-Triggered WC Monitor
+
+If you need a durable watcher that does not keep restating the same stale bridge state, use:
+
+```bash
+node docs/agro/live-bridge/scripts/check-wc-activity.mjs \
+  --repo-root /Users/jessybrenenstahl/Documents/Sprint/Gemma
+```
+
+Behavior:
+
+- attempts `git fetch`, but still works from the cached `origin/...` ref if fetch fails
+- reads the current bridge state for Windows -> Mac handoffs
+- checks the Mac inbox for `codex-prompt-from-windows-codex-*`
+- checks the Mac watcher log for the latest Windows-prompt delivery event
+- persists the last seen bridge/inbox/log fingerprints under:
+  - `apps/mission-control/.data/live-bridge/watch-wc-prompt-state.json`
+- reports `changed=true` only when one of those fingerprints changes
+
+That makes it suitable for heartbeat automations and other background pollers that should be edge-triggered rather than level-triggered.
+
 ## Mac Codex
 
 Run on the Mac:
