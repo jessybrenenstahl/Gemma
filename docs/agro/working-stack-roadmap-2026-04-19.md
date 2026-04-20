@@ -76,6 +76,7 @@ Exit criteria:
 MC progress update:
 - added `apps/mission-control/check-live-mac.mjs` and `apps/mission-control/check-live-mac-lib.mjs`
 - added `apps/mission-control/test/check-live-mac.test.mjs`
+- added native macOS shell scaffold at `apps/mission-control-macos`
 - current repo proof:
   - `node --test apps/mission-control/test/check-live-mac.test.mjs`
   - `6/6` passing
