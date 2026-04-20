@@ -66,6 +66,23 @@ node /Users/jessybrenenstahl/Documents/Sprint/Gemma/apps/mission-control/check-l
 
 The optional dual-lane checks stay off by default so the Mac script can still be useful when only the Mac lane is expected to be healthy.
 
+If a Codex session or sandbox interferes with Node `fetch`, force the checker onto `curl`:
+
+```bash
+node /Users/jessybrenenstahl/Documents/Sprint/Gemma/apps/mission-control/check-live-mac.mjs --text --transport curl
+```
+
+Transport modes:
+
+- `--transport auto`
+  - default
+  - uses Node `fetch`
+  - falls back to `curl` automatically on `EPERM`
+- `--transport fetch`
+  - use only Node `fetch`
+- `--transport curl`
+  - bypass Node `fetch` entirely
+
 The mission-control UI also exposes a `Recovery Watch` card backed by `GET /api/live-recovery`, so you can inspect the latest recovery summary, Mac probe statuses, and watcher output from the app itself.
 
 If you want Windows to wait for the Mac to come online and then automatically verify the real dual-lane routes, use:

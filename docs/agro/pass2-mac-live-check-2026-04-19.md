@@ -36,6 +36,9 @@ Live from this Codex session:
 
 - `node apps/mission-control/check-live-mac.mjs --text`
 - result: blocked in-session by localhost socket `EPERM`
+- workaround now landed:
+  - `node apps/mission-control/check-live-mac.mjs --text --transport curl`
+  - this bypasses Node `fetch` and gives a clean connection result from `curl`
 
 Local listener/process evidence from the same session:
 

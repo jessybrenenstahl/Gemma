@@ -15,6 +15,7 @@ async function main() {
     includeSendPc: config.includeSendPc,
     includeCompare: config.includeCompare,
     timeoutMs: config.timeoutMs,
+    transport: config.transport,
   })
 
   if (config.format === "text") {

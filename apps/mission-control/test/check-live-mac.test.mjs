@@ -1,5 +1,6 @@
 import test from "node:test"
 import assert from "node:assert/strict"
+import { writeFile } from "node:fs/promises"
 
 import {
   formatTextReport,
@@ -176,6 +177,34 @@ test("runMacCheckSuite surfaces connection-level fetch details when a local serv
   assert.match(report.checks.find((check) => check.label === "mission-control-status")?.body || "", /127\.0\.0\.1:3040/)
 })
 
+test("runMacCheckSuite falls back to curl when fetch hits EPERM in auto mode", async () => {
+  const fetchStub = async () => {
+    const error = new TypeError("fetch failed")
+    error.cause = {
+      code: "EPERM",
+      address: "127.0.0.1",
+      port: 3040,
+      message: "connect EPERM 127.0.0.1:3040",
+    }
+    throw error
+  }
+
+  const execFileStub = async (_file, args, _options, callback) => {
+    const bodyPath = args[args.indexOf("-o") + 1]
+    await writeFile(bodyPath, JSON.stringify({ ok: true }), "utf8")
+    callback(null, "200", "")
+  }
+
+  const report = await runMacCheckSuite({
+    fetchImpl: fetchStub,
+    execFileImpl: execFileStub,
+    transport: "auto",
+  })
+
+  assert.equal(report.checks.find((check) => check.label === "mission-control-status")?.ok, true)
+  assert.equal(report.checks.find((check) => check.label === "mac-models")?.ok, true)
+})
+
 test("parseCliArgs honors Mac checker flags", () => {
   const parsed = parseCliArgs([
     "--mission-control-url",
@@ -189,6 +218,8 @@ test("parseCliArgs honors Mac checker flags", () => {
     "--text",
     "--timeout-ms",
     "9000",
+    "--transport",
+    "curl",
   ])
 
   assert.deepEqual(parsed, {
@@ -199,5 +230,6 @@ test("parseCliArgs honors Mac checker flags", () => {
     includeCompare: true,
     timeoutMs: 9000,
     format: "text",
+    transport: "curl",
   })
 })

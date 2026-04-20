@@ -1,3 +1,8 @@
+import { execFile as defaultExecFile } from "node:child_process"
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
+import os from "node:os"
+import path from "node:path"
+
 const DEFAULT_MISSION_CONTROL_URL = "http://127.0.0.1:3040"
 const DEFAULT_MAC_ENDPOINT = "http://127.0.0.1:1234"
 const DEFAULT_TIMEOUT_MS = 20_000
@@ -71,7 +76,131 @@ function buildSkippedCheck(label, body, required = false) {
   }
 }
 
-async function requestJson(fetchImpl, url, { method = "GET", body, timeoutMs = DEFAULT_TIMEOUT_MS } = {}) {
+function parseJsonText(rawText) {
+  if (!rawText) {
+    return null
+  }
+
+  try {
+    return JSON.parse(rawText)
+  } catch {
+    return null
+  }
+}
+
+function formatFetchError(error) {
+  const causeCode = String(error?.cause?.code || error?.code || "").trim()
+  const causeAddress = String(error?.cause?.address || "").trim()
+  const causePort = String(error?.cause?.port || "").trim()
+  const causeMessage = String(error?.cause?.message || "").trim()
+  const connectionTarget =
+    causeAddress && causePort ? `${causeAddress}:${causePort}` : causeAddress || causePort
+  return [causeCode, connectionTarget, causeMessage].filter(Boolean).join(" ") || error?.message || "Request failed."
+}
+
+function shouldFallbackToCurl(error, transport) {
+  if (transport !== "auto") {
+    return false
+  }
+
+  const code = String(error?.cause?.code || error?.code || "").trim().toUpperCase()
+  return code === "EPERM"
+}
+
+function runExecFile(execFileImpl, file, args, options = {}) {
+  return new Promise((resolve, reject) => {
+    execFileImpl(file, args, options, (error, stdout, stderr) => {
+      if (error) {
+        error.stdout = stdout
+        error.stderr = stderr
+        reject(error)
+        return
+      }
+      resolve({ stdout, stderr })
+    })
+  })
+}
+
+async function requestJsonViaCurl(
+  execFileImpl,
+  url,
+  { method = "GET", body, timeoutMs = DEFAULT_TIMEOUT_MS } = {}
+) {
+  const tempDir = await mkdtemp(path.join(os.tmpdir(), "agro-check-live-mac-"))
+  const bodyPath = path.join(tempDir, "response-body.txt")
+  const bodyJson = body ? JSON.stringify(body) : ""
+  const args = [
+    "-sS",
+    "-o",
+    bodyPath,
+    "-w",
+    "%{http_code}",
+    "-X",
+    method,
+    "--max-time",
+    String(Math.max(1, Math.ceil(timeoutMs / 1000))),
+    "--connect-timeout",
+    String(Math.max(1, Math.ceil(Math.min(timeoutMs, 5000) / 1000))),
+  ]
+
+  if (bodyJson) {
+    args.push("-H", "Content-Type: application/json", "--data", bodyJson)
+  }
+
+  args.push(url)
+
+  try {
+    const { stdout, stderr } = await runExecFile(execFileImpl, "curl", args, {
+      timeout: timeoutMs + 1000,
+      maxBuffer: 4 * 1024 * 1024,
+    })
+    const rawText = await readFile(bodyPath, "utf8").catch(() => "")
+    const statusText = String(stdout || "").trim()
+    const status = /^\d+$/.test(statusText) ? Number(statusText) : 0
+
+    return {
+      ok: status >= 200 && status < 300,
+      status,
+      text: rawText || String(stderr || "").trim() || `HTTP ${status}`,
+      json: parseJsonText(rawText),
+      transport: "curl",
+    }
+  } catch (error) {
+    const stderr = String(error?.stderr || "").trim()
+    const stdout = String(error?.stdout || "").trim()
+    const message =
+      stderr ||
+      stdout ||
+      (error?.code === "ENOENT" ? "curl is not installed." : error?.message) ||
+      "curl request failed."
+
+    return {
+      ok: false,
+      status: 0,
+      text: message,
+      json: null,
+      transport: "curl",
+    }
+  } finally {
+    await rm(tempDir, { recursive: true, force: true }).catch(() => {})
+  }
+}
+
+async function requestJson(
+  fetchImpl,
+  execFileImpl,
+  url,
+  {
+    method = "GET",
+    body,
+    timeoutMs = DEFAULT_TIMEOUT_MS,
+    transport = "auto",
+  } = {}
+) {
+  if (transport === "curl") {
+    return requestJsonViaCurl(execFileImpl, url, { method, body, timeoutMs })
+  }
+
   const controller = new AbortController()
   const timeoutHandle = setTimeout(() => controller.abort(), timeoutMs)
 
@@ -84,20 +213,13 @@ async function requestJson(fetchImpl, url, { method = "GET", body, timeoutMs = D
     })
 
     const rawText = await response.text()
-    let parsed = null
-    if (rawText) {
-      try {
-        parsed = JSON.parse(rawText)
-      } catch {
-        parsed = null
-      }
-    }
 
     return {
       ok: response.ok,
       status: response.status,
       text: rawText,
-      json: parsed,
+      json: parseJsonText(rawText),
+      transport: "fetch",
     }
   } catch (error) {
     if (error?.name === "AbortError") {
@@ -106,22 +228,20 @@ async function requestJson(fetchImpl, url, { method = "GET", body, timeoutMs = D
         status: 0,
         text: `Timed out after ${timeoutMs} ms.`,
         json: null,
+        transport: "fetch",
       }
     }
 
-    const causeCode = String(error?.cause?.code || "").trim()
-    const causeAddress = String(error?.cause?.address || "").trim()
-    const causePort = String(error?.cause?.port || "").trim()
-    const causeMessage = String(error?.cause?.message || "").trim()
-    const connectionTarget =
-      causeAddress && causePort ? `${causeAddress}:${causePort}` : causeAddress || causePort
-    const detail = [causeCode, connectionTarget, causeMessage].filter(Boolean).join(" ")
+    if (shouldFallbackToCurl(error, transport)) {
+      return requestJsonViaCurl(execFileImpl, url, { method, body, timeoutMs })
+    }
 
     return {
       ok: false,
       status: 0,
-      text: detail || error?.message || "Request failed.",
+      text: formatFetchError(error),
       json: null,
+      transport: "fetch",
     }
   } finally {
     clearTimeout(timeoutHandle)
@@ -229,8 +349,8 @@ function summarizeCompareResponse(response) {
     .join(" ")
 }
 
-async function runCheck(fetchImpl, label, url, options, summarize, required = true) {
-  const response = await requestJson(fetchImpl, url, options)
+async function runCheck(fetchImpl, execFileImpl, label, url, options, summarize, required = true) {
+  const response = await requestJson(fetchImpl, execFileImpl, url, options)
   return {
     label,
     ok: response.ok,
@@ -243,12 +363,14 @@ async function runCheck(fetchImpl, label, url, options, summarize, required = tr
 
 export async function runMacCheckSuite({
   fetchImpl = globalThis.fetch,
+  execFileImpl = defaultExecFile,
   missionControlUrl = DEFAULT_MISSION_CONTROL_URL,
   macEndpoint = DEFAULT_MAC_ENDPOINT,
   macModel = "",
   includeSendPc = false,
   includeCompare = false,
   timeoutMs = DEFAULT_TIMEOUT_MS,
+  transport = "auto",
 } = {}) {
   if (typeof fetchImpl !== "function") {
     throw new Error("A fetch implementation is required to run the Mac live checks.")
@@ -260,14 +382,18 @@ export async function runMacCheckSuite({
 
   const statusCheck = await runCheck(
     fetchImpl,
+    execFileImpl,
     "mission-control-status",
     `${baseMissionControlUrl}/api/status`,
-    { timeoutMs },
+    { timeoutMs, transport },
     (response) => clipText(response.text || `HTTP ${response.status}`)
   )
   checks.push(statusCheck)
 
-  const modelsResponse = await requestJson(fetchImpl, `${baseMacEndpoint}/v1/models`, { timeoutMs })
+  const modelsResponse = await requestJson(fetchImpl, execFileImpl, `${baseMacEndpoint}/v1/models`, {
+    timeoutMs,
+    transport,
+  })
   const resolvedModel = resolveMacModel(modelsResponse.json, macModel)
   checks.push({
     label: "mac-models",
@@ -282,11 +408,13 @@ export async function runMacCheckSuite({
     checks.push(
       await runCheck(
         fetchImpl,
+        execFileImpl,
         "mac-chat",
         `${baseMacEndpoint}/v1/chat/completions`,
         {
           method: "POST",
           timeoutMs,
+          transport,
           body: {
             model: resolvedModel,
             messages: [
@@ -310,11 +438,13 @@ export async function runMacCheckSuite({
   checks.push(
     await runCheck(
       fetchImpl,
+      execFileImpl,
       "send-mac-route",
       `${baseMissionControlUrl}/api/routes/send-mac`,
       {
         method: "POST",
         timeoutMs,
+        transport,
         body: {
           prompt: "State whether the Mac execution lane is healthy. Keep the reply short and concrete.",
         },
@@ -327,11 +457,13 @@ export async function runMacCheckSuite({
     checks.push(
       await runCheck(
         fetchImpl,
+        execFileImpl,
         "send-pc-route",
         `${baseMissionControlUrl}/api/routes/send-pc`,
         {
           method: "POST",
           timeoutMs,
+          transport,
           body: {
             prompt: "Reply with exactly READY if the local reviewer route is functioning.",
           },
@@ -348,11 +480,13 @@ export async function runMacCheckSuite({
     checks.push(
       await runCheck(
         fetchImpl,
+        execFileImpl,
         "compare-route",
         `${baseMissionControlUrl}/api/routes/compare`,
         {
           method: "POST",
           timeoutMs,
+          transport,
           body: {
             prompt: DEFAULT_COMPARE_PROBE_PROMPT,
             operational_probe: true,
@@ -390,6 +524,7 @@ export function parseCliArgs(argv = [], env = process.env) {
     includeCompare: parseBooleanFlag(env.AGRO_CHECK_INCLUDE_COMPARE, false),
     timeoutMs: Number(env.AGRO_CHECK_TIMEOUT_MS) || DEFAULT_TIMEOUT_MS,
     format: "json",
+    transport: String(env.AGRO_CHECK_TRANSPORT || "auto").trim().toLowerCase() || "auto",
   }
 
   for (let index = 0; index < args.length; index += 1) {
@@ -430,6 +565,11 @@ export function parseCliArgs(argv = [], env = process.env) {
     }
     if (arg === "--json") {
       config.format = "json"
+      continue
+    }
+    if (arg === "--transport" && next) {
+      config.transport = String(next).trim().toLowerCase() || "auto"
+      index += 1
       continue
     }
   }

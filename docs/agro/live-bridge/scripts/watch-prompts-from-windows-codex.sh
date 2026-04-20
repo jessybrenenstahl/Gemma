@@ -53,7 +53,34 @@ trap cleanup EXIT INT TERM
 
 function extract_message_id() {
   local file_path="$1"
-  awk -F': ' '/^Current message id:/ {print $2; exit}' "${file_path}" | tr -d '\r'
+  python3 - "${file_path}" <<'PY'
+import pathlib, re, sys
+text = pathlib.Path(sys.argv[1]).read_text(encoding="utf8")
+patterns = [
+    r"(?m)^Current message id:\s*(.+)\s*$",
+    r"(?m)^Message ID:\s*(.+)\s*$",
+    r"(?m)^\s*message_id:\s*(.+)\s*$",
+]
+for pattern in patterns:
+    match = re.search(pattern, text)
+    if match:
+        print(match.group(1).strip().strip("`"))
+        raise SystemExit(0)
+print(pathlib.Path(sys.argv[1]).stem)
+PY
+}
+
+function extract_prompt_body() {
+  local file_path="$1"
+  python3 - "${file_path}" <<'PY'
+import pathlib, re, sys
+text = pathlib.Path(sys.argv[1]).read_text(encoding="utf8")
+if text.startswith("<!-- codex-bridge"):
+    end = text.find("-->")
+    if end != -1:
+        text = text[end + 3 :].lstrip("\r\n")
+sys.stdout.write(text)
+PY
 }
 
 function record_delivery() {
@@ -138,7 +165,7 @@ while true; do
   fi
 
   if [[ -s "${NEXT_FILE}" ]]; then
-    pbcopy < "${NEXT_FILE}"
+    extract_prompt_body "${NEXT_FILE}" | pbcopy
     if [[ "${NO_SEND}" -eq 0 ]]; then
       if osascript <<EOF
 tell application "${APP_NAME}" to activate

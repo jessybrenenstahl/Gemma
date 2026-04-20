@@ -35,12 +35,33 @@ $remoteRef = "origin/codex/mac-codex-first-sync"
 function Get-MessageId {
   param([string]$Payload)
 
-  $match = [regex]::Match($Payload, '(?m)^Current message id:\s*(.+)\s*$')
-  if ($match.Success) {
-    return $match.Groups[1].Value.Trim()
+  $patterns = @(
+    '(?m)^Current message id:\s*(.+)\s*$',
+    '(?m)^Message ID:\s*(.+)\s*$',
+    '(?m)^\s*message_id:\s*(.+)\s*$'
+  )
+
+  foreach ($pattern in $patterns) {
+    $match = [regex]::Match($Payload, $pattern)
+    if ($match.Success) {
+      return $match.Groups[1].Value.Trim().Trim('`')
+    }
   }
 
   return ""
+}
+
+function Get-PromptBody {
+  param([string]$Payload)
+
+  if ($Payload -match '^\s*<!--\s*codex-bridge') {
+    $endIndex = $Payload.IndexOf("-->")
+    if ($endIndex -ge 0) {
+      return $Payload.Substring($endIndex + 3).TrimStart("`r", "`n")
+    }
+  }
+
+  return $Payload
 }
 
 function Record-Delivery {
@@ -139,7 +160,8 @@ try {
     }
 
     if (-not [string]::IsNullOrWhiteSpace($payload)) {
-      Set-Clipboard -Value $payload
+      $promptBody = Get-PromptBody -Payload $payload
+      Set-Clipboard -Value $promptBody
       if (-not $NoSend) {
         $activated = Invoke-CodexComposerFocus -AppTitle $AppTitle -ActivationDelayMs $ActivationDelayMs
         if ($activated) {
