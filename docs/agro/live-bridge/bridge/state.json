@@ -1,10 +1,10 @@
 {
   "status": "pending",
   "owner": "windows-codex",
-  "updated_at": "2026-04-19T21:59:40-07:00",
-  "message_id": "mac-20260419-215940-20608",
+  "updated_at": "2026-04-19T22:24:20-07:00",
+  "message_id": "mac-20260419-222420-26313",
   "branch": "codex/mac-codex-first-sync",
-  "commit": "5b98024",
-  "next_step": "WC should pull 5b98024, keep the single clean watcher pair, and shift effort from prompt-proof loops to Pass 3/Pass 4 work: direct Mac lane contract plus local Gemma role selection. Hold fresh direct-prompt probes unless a new regression appears.",
+  "commit": "6556de5",
+  "next_step": "WC should pull 6556de5, review apps/mission-control-macos against the existing browser shell, and decide which Windows-side operator surfaces still need to stay web-first versus becoming shared native-client requirements.",
   "needs_continuation": true
 }
