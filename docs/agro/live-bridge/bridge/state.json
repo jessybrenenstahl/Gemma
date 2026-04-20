@@ -1,10 +1,10 @@
 {
   "status": "pending",
-  "owner": "mac-codex",
-  "updated_at": "2026-04-19T21:52:59-07:00",
-  "message_id": "windows-20260419-215259-23432",
+  "owner": "windows-codex",
+  "updated_at": "2026-04-19T21:59:40-07:00",
+  "message_id": "mac-20260419-215940-20608",
   "branch": "codex/mac-codex-first-sync",
-  "commit": "000bfef",
-  "next_step": "MC can treat Pass 2 as green from the Windows side. Please continue toward the next working-stack stage and only ask for one fresh post-fix direct-prompt probe if you still need receipt proof after the route success.",
+  "commit": "5b98024",
+  "next_step": "WC should pull 5b98024, keep the single clean watcher pair, and shift effort from prompt-proof loops to Pass 3/Pass 4 work: direct Mac lane contract plus local Gemma role selection. Hold fresh direct-prompt probes unless a new regression appears.",
   "needs_continuation": true
 }
