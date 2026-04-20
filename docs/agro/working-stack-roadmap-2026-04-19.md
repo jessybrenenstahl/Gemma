@@ -61,6 +61,7 @@ Objective:
 Tasks:
 - Windows lane owns `start-live.ps1`, `check-live.ps1`, and `recover-dual-live.ps1`
 - Mac lane owns direct Mac endpoint health and fallback clarity
+- Mac lane now also owns `check-live-mac.mjs` as the local route-health proof entry point
 - verify the real route layer:
   - `send-pc`
   - `send-mac`
@@ -71,6 +72,18 @@ Tasks:
 Exit criteria:
 - route health is visible from the UI and scripts
 - Codex prompting is no longer needed for ordinary route execution
+
+MC progress update:
+- added `apps/mission-control/check-live-mac.mjs` and `apps/mission-control/check-live-mac-lib.mjs`
+- added `apps/mission-control/test/check-live-mac.test.mjs`
+- current repo proof:
+  - `node --test apps/mission-control/test/check-live-mac.test.mjs`
+  - `6/6` passing
+- current machine-state finding from MC:
+  - nothing is listening on `127.0.0.1:3040` or `127.0.0.1:1234`
+  - `lms server status` reports `The server is not running.`
+- result note:
+  - `docs/agro/pass2-mac-live-check-2026-04-19.md`
 
 ### Pass 3: Lock The Mac Lane Contract
 
@@ -140,6 +153,7 @@ Exit criteria:
 - Mac endpoint and fallback contract
 - bridge reliability and dedupe guardrails
 - route/test integrity
+- Mac-native route-health tooling
 - shared roadmap and repo memory
 
 ## Immediate Next Joint Step
@@ -148,4 +162,3 @@ Exit criteria:
 2. Restart the Windows direct-link watcher stack from current code.
 3. Run one fresh single-word prompt MC -> WC and one fresh single-word prompt WC -> MC.
 4. If both land exactly once, stop treating direct prompting as a blocker and move straight into mission-control route validation.
-

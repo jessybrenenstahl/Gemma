@@ -45,6 +45,27 @@ pwsh -ExecutionPolicy Bypass -File C:\Users\jessy\Documents\GitHub\Gemma\apps\mi
 It also includes a direct `pc-chat` probe, which is more meaningful than `pc-models` alone when the local reviewer lane is still warming up.
 It now also includes DNS, TCP-layer, and curl-level HTTP diagnostics for the Mac host, so blocked states can distinguish `network path is open` from `HTTP upstream reset` or `HTTP 502`.
 
+For the Mac side, there is now a local Node-based checker that validates the mission-control server plus the Mac execution lane directly from this machine:
+
+```bash
+node /Users/jessybrenenstahl/Documents/Sprint/Gemma/apps/mission-control/check-live-mac.mjs --text
+```
+
+That checker focuses on the local route contract:
+
+- `GET /api/status`
+- local Mac `GET /v1/models`
+- local Mac `POST /v1/chat/completions`
+- real `POST /api/routes/send-mac`
+
+If you also want the Mac-side script to exercise dual-lane route proofs from the same entry point, add:
+
+```bash
+node /Users/jessybrenenstahl/Documents/Sprint/Gemma/apps/mission-control/check-live-mac.mjs --include-send-pc --include-compare --text
+```
+
+The optional dual-lane checks stay off by default so the Mac script can still be useful when only the Mac lane is expected to be healthy.
+
 The mission-control UI also exposes a `Recovery Watch` card backed by `GET /api/live-recovery`, so you can inspect the latest recovery summary, Mac probe statuses, and watcher output from the app itself.
 
 If you want Windows to wait for the Mac to come online and then automatically verify the real dual-lane routes, use:
