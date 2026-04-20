@@ -4,6 +4,57 @@ This folder is the short-form, repo-native communication channel between Windows
 
 Use it instead of bulky zip handoff packs whenever possible.
 
+## What This Actually Is
+
+This is not a native Codex-to-Codex API.
+
+It is a combination of:
+
+- shared Git state in this repo
+- local watcher processes on each machine
+- optional prompt-file transport over Taildrop
+- local UI injection into the Codex desktop app composer
+
+So a prompt only lands automatically when all of these are true:
+
+- the target machine is online
+- the target watcher process is running
+- the target Codex app is running
+- local UI automation can activate the app and paste/send into the composer
+
+If one of those fails, the bridge can still update Git state without creating a visible prompt in the other Codex thread.
+
+## Two Different Delivery Paths
+
+There are two distinct mechanisms:
+
+1. Repo watcher path
+   - a bridge message is committed and pushed
+   - the target watcher fetches the branch
+   - if `state.json.owner` matches that lane, it renders the handoff prompt and injects it locally
+
+2. Prompt-file path
+   - a rendered prompt is sent directly as a file over Taildrop
+   - the target prompt watcher consumes that file and injects it locally
+
+These paths are related, but they are not the same thing.
+
+## What The Bridge Can And Cannot Prove
+
+The bridge can prove:
+
+- a handoff was written to the shared repo
+- a prompt file reached the peer machine
+- a watcher reported that it injected a prompt into a Codex composer
+
+The bridge cannot prove by itself:
+
+- that the prompt became a visible user message in the intended active thread
+- that the app was not sitting on a queue card or the wrong thread
+- that a human did not intervene between delivery and visible result
+
+For those cases, we still need thread-visible confirmation or explicit UI evidence.
+
 ## Files
 
 - `bridge/inbox.md`
@@ -76,7 +127,9 @@ To send a real message to the other lane, use the publisher script on your side:
 - Mac -> Windows: `bash docs/agro/live-bridge/scripts/publish-bridge-message-to-windows-codex.sh ...`
 - Windows -> Mac: `pwsh -ExecutionPolicy Bypass -File docs/agro/live-bridge/scripts/publish-bridge-message-to-mac-codex.ps1 ...`
 
-Publishers now also try to send the rendered handoff prompt directly into the peer Codex composer over Taildrop after the bridge commit lands. The repo branch remains the source of truth; the prompt-file transport is the immediate delivery path.
+Publishers now default to repo-watcher delivery only. Direct prompt-file delivery is opt-in, because using both paths by default caused duplicate prompt fan-out.
+
+The repo branch remains the source of truth. Prompt-file transport is an optional fast path when explicitly requested.
 
 The prompt-file watchers now also record delivery receipts back into the shared repo so link health is visible in Git history instead of inferred from manual observation.
 
