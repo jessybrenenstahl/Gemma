@@ -1,6 +1,16 @@
 {
-  "updated_at": "2026-04-20T03:47:50.262Z",
-  "last_delivered_to_mac": null,
+  "updated_at": "2026-04-20T04:40:33.537Z",
+  "last_delivered_to_mac": {
+    "message_id": "test-wc-to-mc-receipt",
+    "source_lane": "windows-codex",
+    "target_lane": "mac-codex",
+    "delivery_status": "delivered",
+    "prompt_file": "repo-test.md",
+    "notes": "manual_probe",
+    "delivered_at": "2026-04-20T04:40:33.537Z",
+    "recorded_from_commit": "49ec62e",
+    "recorded_from_branch": "codex/mac-codex-direct-link"
+  },
   "last_delivered_to_windows": {
     "message_id": "mac-20260419-204739-10295",
     "source_lane": "mac-codex",
@@ -11,5 +21,19 @@
     "delivered_at": "2026-04-20T03:47:50.262Z",
     "recorded_from_commit": "000bfef",
     "recorded_from_branch": "codex/mac-codex-first-sync"
-  }
+  },
+  "receipts_to_mac": {
+    "test-wc-to-mc-receipt": {
+      "message_id": "test-wc-to-mc-receipt",
+      "source_lane": "windows-codex",
+      "target_lane": "mac-codex",
+      "delivery_status": "delivered",
+      "prompt_file": "repo-test.md",
+      "notes": "manual_probe",
+      "delivered_at": "2026-04-20T04:40:33.537Z",
+      "recorded_from_commit": "49ec62e",
+      "recorded_from_branch": "codex/mac-codex-direct-link"
+    }
+  },
+  "receipts_to_windows": {}
 }

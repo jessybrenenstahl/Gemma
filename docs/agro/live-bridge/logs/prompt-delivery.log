@@ -15,3 +15,4 @@
 2026-04-20T00:56:14.022Z mac-codex -> windows-codex delivered mac-20260419-175544-7075 as delivered via codex-prompt-from-mac-codex-20260419-175546 (4).md
 2026-04-20T00:56:21.381Z mac-codex -> windows-codex delivered mac-20260419-175544-7075 as delivered via codex-prompt-from-mac-codex-20260419-175546.md
 2026-04-20T03:47:50.262Z mac-codex -> windows-codex delivered mac-20260419-204739-10295 as app_delivered_unconfirmed via repo-bridge; notes: repo_watcher_path
+2026-04-20T04:40:33.537Z windows-codex -> mac-codex delivered test-wc-to-mc-receipt as delivered via repo-test.md; notes: manual_probe
