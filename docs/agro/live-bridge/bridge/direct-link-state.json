@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-04-20T04:52:12.661Z",
+  "updated_at": "2026-04-20T04:52:21.337Z",
   "last_delivered_to_mac": {
     "message_id": "test-wc-to-mc-receipt",
     "source_lane": "windows-codex",
@@ -15,10 +15,10 @@
     "message_id": "mac-20260419-214822-18124",
     "source_lane": "mac-codex",
     "target_lane": "windows-codex",
-    "delivery_status": "stale_skipped",
-    "prompt_file": "codex-prompt-from-mac-codex-20260419-214825 (4).md",
-    "notes": "superseded_by:mac-20260419-214822-18124",
-    "delivered_at": "2026-04-20T04:52:12.661Z",
+    "delivery_status": "activation_failed",
+    "prompt_file": "codex-prompt-from-mac-codex-20260419-214825 (6).md",
+    "notes": "",
+    "delivered_at": "2026-04-20T04:52:21.337Z",
     "recorded_from_commit": "000bfef",
     "recorded_from_branch": "codex/mac-codex-first-sync"
   },
@@ -51,10 +51,10 @@
       "message_id": "mac-20260419-214822-18124",
       "source_lane": "mac-codex",
       "target_lane": "windows-codex",
-      "delivery_status": "stale_skipped",
-      "prompt_file": "codex-prompt-from-mac-codex-20260419-214825 (4).md",
-      "notes": "superseded_by:mac-20260419-214822-18124",
-      "delivered_at": "2026-04-20T04:52:12.661Z",
+      "delivery_status": "activation_failed",
+      "prompt_file": "codex-prompt-from-mac-codex-20260419-214825 (6).md",
+      "notes": "",
+      "delivered_at": "2026-04-20T04:52:21.337Z",
       "recorded_from_commit": "000bfef",
       "recorded_from_branch": "codex/mac-codex-first-sync"
     }
