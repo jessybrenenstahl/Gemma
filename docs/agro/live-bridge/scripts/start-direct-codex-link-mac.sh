@@ -31,17 +31,36 @@ mkdir -p "${RUNTIME_DIR}"
 function ensure_running() {
   local label="$1"
   local pattern="$2"
+  local log_path="${RUNTIME_DIR}/${label}.log"
   shift 2
 
-  local existing_pid=""
-  existing_pid="$(pgrep -f "${pattern}" | head -n 1 || true)"
-  if [[ -n "${existing_pid}" ]]; then
-    echo "${label} already running with pid ${existing_pid}."
+  mapfile -t existing_pids < <(pgrep -f "${pattern}" || true)
+  if [[ "${#existing_pids[@]}" -gt 1 ]]; then
+    echo "Multiple ${label} processes detected; restarting a single supervised instance."
+    for pid in "${existing_pids[@]}"; do
+      kill "${pid}" 2>/dev/null || true
+    done
+    sleep 0.5
+    existing_pids=()
+  fi
+
+  if [[ "${#existing_pids[@]}" -eq 1 ]]; then
+    echo "${label} already running with pid ${existing_pids[0]}."
     return 0
   fi
 
-  local log_path="${RUNTIME_DIR}/${label}.log"
-  nohup "$@" >> "${log_path}" 2>&1 &
+  local command=("$@")
+  nohup bash -lc '
+set -euo pipefail
+log_path="$1"
+shift
+while true; do
+  "$@" >> "$log_path" 2>&1
+  exit_code=$?
+  printf "%s %s exited with code %s; restarting in 1s\n" "$(date -Iseconds)" "$0" "$exit_code" >> "$log_path"
+  sleep 1
+done
+' "${label}" "${log_path}" "${command[@]}" >> "${log_path}" 2>&1 &
   local pid=$!
   echo "${pid}" > "${RUNTIME_DIR}/${label}.pid"
   echo "Started ${label} with pid ${pid}. Log: ${log_path}"

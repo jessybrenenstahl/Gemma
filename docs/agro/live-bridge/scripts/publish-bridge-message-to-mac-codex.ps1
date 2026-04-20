@@ -8,6 +8,7 @@ param(
   [string]$NextStep,
   [string]$Status = "pending",
   [int]$MaxRetries = 5,
+  [switch]$DirectPrompt,
   [switch]$NoDirectPrompt,
   [switch]$DryRun
 )
@@ -151,7 +152,7 @@ for ($attempt = 1; $attempt -le $MaxRetries; $attempt += 1) {
     git -C $tempPath add docs/agro/live-bridge/bridge/inbox.md docs/agro/live-bridge/bridge/state.json docs/agro/live-bridge/logs/events.log *> $null
     git -C $tempPath commit -m "Bridge message windows -> mac: $Subject" *> $null
     git -C $tempPath push $RemoteName HEAD:$BranchName *> $null
-    if (-not $NoDirectPrompt) {
+    if ($DirectPrompt -and -not $NoDirectPrompt) {
       git -C $RepoRoot fetch $RemoteName $BranchName *> $null
       Send-DirectPrompt
     }

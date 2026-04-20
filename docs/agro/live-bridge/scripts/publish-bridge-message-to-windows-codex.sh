@@ -13,7 +13,7 @@ NEXT_STEP=""
 STATUS="pending"
 MAX_RETRIES=5
 DRY_RUN=0
-DIRECT_PROMPT=1
+DIRECT_PROMPT=0
 WINDOWS_REPO_ROOT='C:\Users\jessy\Documents\Codex\Gemma'
 RENDER_SCRIPT="docs/agro/live-bridge/scripts/render-bridge-prompt.mjs"
 PROMPT_FILE_SENDER="docs/agro/live-bridge/scripts/send-prompt-file-to-windows-codex.sh"
@@ -36,6 +36,7 @@ Options:
   --next-step <text>
   --status <value>
   --max-retries <count>
+  --direct-prompt
   --no-direct-prompt
   --dry-run
 EOF
@@ -78,6 +79,10 @@ while [[ $# -gt 0 ]]; do
     --max-retries)
       MAX_RETRIES="$2"
       shift 2
+      ;;
+    --direct-prompt)
+      DIRECT_PROMPT=1
+      shift
       ;;
     --no-direct-prompt)
       DIRECT_PROMPT=0

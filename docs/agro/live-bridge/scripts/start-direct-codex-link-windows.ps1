@@ -15,18 +15,47 @@ function Ensure-Running {
     [string[]]$ArgumentList
   )
 
-  $existing = Get-CimInstance Win32_Process |
+  $existing = @(Get-CimInstance Win32_Process |
     Where-Object { ($_.CommandLine -or "") -match [regex]::Escape($CommandMatch) } |
-    Select-Object -First 1
+    Select-Object ProcessId, CommandLine)
 
-  if ($existing) {
-    Write-Host "$Label already running with pid $($existing.ProcessId)."
+  if ($existing.Count -gt 1) {
+    Write-Host "Multiple $Label processes detected; restarting a single supervised instance."
+    foreach ($process in $existing) {
+      Stop-Process -Id $process.ProcessId -Force -ErrorAction SilentlyContinue
+    }
+    Start-Sleep -Milliseconds 500
+    $existing = @()
+  }
+
+  if ($existing.Count -eq 1) {
+    Write-Host "$Label already running with pid $($existing[0].ProcessId)."
     return
   }
 
   $stdoutLogPath = Join-Path $RuntimeDir "$Label.stdout.log"
   $stderrLogPath = Join-Path $RuntimeDir "$Label.stderr.log"
-  $process = Start-Process -FilePath "pwsh" -ArgumentList $ArgumentList -WindowStyle Hidden -PassThru `
+  $supervisor = @(
+    "-NoProfile",
+    "-ExecutionPolicy", "Bypass",
+    "-Command",
+    @'
+$ErrorActionPreference = "Stop"
+$stdout = $args[0]
+$stderr = $args[1]
+$childArgs = $args[2..($args.Length - 1)]
+while ($true) {
+  $p = Start-Process -FilePath "pwsh" -ArgumentList $childArgs -WindowStyle Hidden -PassThru `
+    -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+  $p.WaitForExit()
+  Add-Content -LiteralPath $stdout -Value ("{0} supervisor restart after exit code {1}" -f (Get-Date -Format o), $p.ExitCode)
+  Start-Sleep -Seconds 1
+}
+'@,
+    $stdoutLogPath,
+    $stderrLogPath
+  ) + $ArgumentList
+  $process = Start-Process -FilePath "pwsh" -ArgumentList $supervisor -WindowStyle Hidden -PassThru `
     -RedirectStandardOutput $stdoutLogPath -RedirectStandardError $stderrLogPath
   Set-Content -LiteralPath (Join-Path $RuntimeDir "$Label.pid") -Value $process.Id
   Write-Host "Started $Label with pid $($process.Id). Logs: $stdoutLogPath ; $stderrLogPath"

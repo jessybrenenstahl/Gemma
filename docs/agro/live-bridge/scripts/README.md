@@ -31,7 +31,8 @@ Behavior:
 - commits the bridge message
 - pushes it to `codex/mac-codex-first-sync`
 - hands ownership to `windows-codex`, which lets the Windows watcher inject the prompt
-- also sends the rendered handoff prompt directly to Windows Codex over Taildrop unless `--no-direct-prompt` is used
+- by default relies on the repo watcher only
+- can also send the rendered handoff prompt directly to Windows Codex over Taildrop when `--direct-prompt` is used
 
 Flags:
 
@@ -40,6 +41,7 @@ Flags:
 - `--remote-name <name>`
 - `--branch-name <name>`
 - `--max-retries <count>`
+- `--direct-prompt`
 - `--no-direct-prompt`
 - `--dry-run`
 
@@ -61,7 +63,8 @@ Behavior:
 - commits the bridge message
 - pushes it to `codex/mac-codex-first-sync`
 - hands ownership to `mac-codex`, which lets the Mac watcher inject the prompt
-- also sends the rendered handoff prompt directly to Mac Codex over Taildrop unless `-NoDirectPrompt` is used
+- by default relies on the repo watcher only
+- can also send the rendered handoff prompt directly to Mac Codex over Taildrop when `-DirectPrompt` is used
 
 Flags:
 
@@ -70,6 +73,7 @@ Flags:
 - `-RemoteName <name>`
 - `-BranchName <name>`
 - `-MaxRetries <count>`
+- `-DirectPrompt`
 - `-NoDirectPrompt`
 - `-DryRun`
 
