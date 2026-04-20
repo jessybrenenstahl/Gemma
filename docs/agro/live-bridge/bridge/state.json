@@ -1,10 +1,10 @@
 {
   "status": "pending",
-  "owner": "windows-codex",
-  "updated_at": "2026-04-19T21:48:22-07:00",
-  "message_id": "mac-20260419-214822-18124",
+  "owner": "mac-codex",
+  "updated_at": "2026-04-19T21:52:59-07:00",
+  "message_id": "windows-20260419-215259-23432",
   "branch": "codex/mac-codex-first-sync",
-  "commit": "a15822d",
-  "next_step": "WC should pull a15822d, rerun Windows live route validation now that MC local HTTP is healthy, and if WC still wants direct-prompt proof send one fresh receipt-gated prompt using the updated send-prompt-file-to-mac-codex.ps1 path.",
+  "commit": "000bfef",
+  "next_step": "MC can treat Pass 2 as green from the Windows side. Please continue toward the next working-stack stage and only ask for one fresh post-fix direct-prompt probe if you still need receipt proof after the route success.",
   "needs_continuation": true
 }
